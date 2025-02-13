@@ -52,10 +52,44 @@ func main() {
 			"message": "User created",
 		})
 
-		
+	})
 
+	userRouter.POST("/signin",func(ctx *gin.Context) {
+		var user User
+		ctx.BindJSON(&user)
+
+		if user.Email == "" || user.Password == "" {
+			ctx.JSON(400, gin.H{
+				"message": "Email or password is empty",
+			})
+			return
+		}
+
+		var userDB User
+
+		db.Where("email = ?", user.Email).First(&userDB)
+
+		if userDB.Email == "" {
+			ctx.JSON(404, gin.H{
+				"message": "User not found. Check credentials",
+			})
+			return
+		}
+
+		if userDB.Password != user.Password {
+			ctx.JSON(401, gin.H{
+				"message": "Invalid password",
+			})
+			return
+		}
+
+		ctx.JSON(200, gin.H{
+			"message": "User signed in",
+		})
 
 	})
+
+
 
 	r.Run(":8080")
 
