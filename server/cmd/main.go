@@ -138,9 +138,10 @@ func main() {
 			return
 		}
 
+		ctx.SetCookie("token", tokenString, 3600, "/", "localhost", false, true)
+
 		ctx.JSON(200, gin.H{
 			"message": "User signed in",
-			"token":   tokenString,
 		})
 
 	})
@@ -148,7 +149,14 @@ func main() {
 	// creating a middleware for authentication (a separate function)
 
 	protectedMiddleware := func(ctx *gin.Context) {
-		tokenString := ctx.GetHeader("Authorization")
+		tokenString, err := ctx.Cookie("token")
+		if err != nil {
+			ctx.JSON(401, gin.H{
+				"message": "Authorization token is required",
+			})
+			ctx.Abort()
+			return
+		}
 
 		if tokenString == "" {
 			ctx.JSON(401, gin.H{
