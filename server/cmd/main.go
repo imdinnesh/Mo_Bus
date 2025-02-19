@@ -187,6 +187,15 @@ func main() {
 		})
 	})
 
+	// logout route
+	userRouter.GET("/logout", func(ctx *gin.Context) {
+		ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
+		ctx.JSON(200, gin.H{
+			"message": "User logged out",
+		})
+	})
+	
+
 	r.Run(":8080")
 
 }
