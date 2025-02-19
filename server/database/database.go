@@ -1,24 +1,26 @@
 package database
 
 import (
-	"log"
+    "log"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+    "gorm.io/driver/postgres"
+    "gorm.io/gorm"
 )
 
 func SetupDatabase() *gorm.DB {
 	dsn := "host=localhost user=postgres password=postgres dbname=postgres port=5432 sslmode=disable TimeZone=Asia/Shanghai"
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
-	}
+    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+    if err != nil {
+        log.Fatal("Failed to connect to database:", err)
+    }
 
-	db.AutoMigrate(&User{})
-	return db
+    db.AutoMigrate(&User{})
+    return db
 }
 
 type User struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+    ID       uint    `gorm:"primaryKey" json:"id"`
+    Email    string  `json:"email"`
+    Password string  `json:"password"`
+    Balance  float64 `json:"balance"`
 }

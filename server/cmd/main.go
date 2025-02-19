@@ -18,6 +18,7 @@ func main() {
 
 	router := r.Group("/")
 	routes.UserRoutes(router, db)
+	routes.PaymentRoutes(router, db)
 
 	r.Run(":8080")
 }

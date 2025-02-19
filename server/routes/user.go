@@ -22,7 +22,9 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			return
 		}
 
+		user.Balance = 0.0 // Initialize balance to 0
 		db.Create(&user)
+		ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
 
 		ctx.JSON(200, gin.H{
 			"message": "User created",
@@ -75,9 +77,13 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 	userRouter.GET("/profile", middleware.ProtectedMiddleware(), func(ctx *gin.Context) {
 		email := ctx.GetString("email")
+		var user database.User
+		db.Where("email = ?", email).First(&user)
+
 		ctx.JSON(200, gin.H{
 			"message": "Profile accessed",
-			"email":   email,
+			"email":   user.Email,
+			"balance": user.Balance,
 		})
 	})
 
