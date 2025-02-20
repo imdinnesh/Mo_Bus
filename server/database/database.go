@@ -36,21 +36,23 @@ type Stop struct {
 
 // Routes Table
 type Route struct {
-	ID                 uint  `gorm:"primaryKey" json:"id"`
-	RouteName          string `json:"route_name"`
-	SourceStopID       uint   `json:"source_stop_id"`
-	DestinationStopID  uint   `json:"destination_stop_id"`
-	SourceStop         Stop   `gorm:"foreignKey:SourceStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	DestinationStop    Stop   `gorm:"foreignKey:DestinationStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ID                uint        `gorm:"primaryKey" json:"id"`
+	RouteNumber       string      `json:"route_number"`
+	RouteName         string      `json:"route_name"`
+	SourceStopID      uint        `json:"source_stop_id"`
+	DestinationStopID uint        `json:"destination_stop_id"`
+	SourceStop        Stop        `gorm:"foreignKey:SourceStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	DestinationStop   Stop        `gorm:"foreignKey:DestinationStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	RouteStops        []RouteStop `gorm:"foreignKey:RouteID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Route Stops Table (Maps Stops to Routes)
 type RouteStop struct {
-	ID        uint `gorm:"primaryKey" json:"id"`
-	RouteID   uint `json:"route_id"`
-	StopID    uint `json:"stop_id"`
-	Route     Route `gorm:"foreignKey:RouteID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Stop      Stop  `gorm:"foreignKey:StopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ID      uint  `gorm:"primaryKey" json:"id"`
+	RouteID uint  `json:"route_id"`
+	StopID  uint  `json:"stop_id"`
+	Route   Route `gorm:"foreignKey:RouteID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Stop    Stop  `gorm:"foreignKey:StopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Bookings Table
@@ -63,9 +65,9 @@ type Booking struct {
 	Status      string    `json:"status"` // enum: pending, success, failed
 	BookingDate time.Time `json:"booking_date"`
 
-	User       User `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	StartStop  Stop `gorm:"foreignKey:StartStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	EndStop    Stop `gorm:"foreignKey:EndStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	User      User `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	StartStop Stop `gorm:"foreignKey:StartStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	EndStop   Stop `gorm:"foreignKey:EndStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Payments Table

@@ -8,6 +8,7 @@ import (
 
 func main() {
 	db := database.SetupDatabase()
+	// database.SeedDatabase(db)
 
 	r := gin.Default()
 	r.GET("/ping", func(c *gin.Context) {
@@ -19,6 +20,7 @@ func main() {
 	router := r.Group("/")
 	routes.UserRoutes(router, db)
 	routes.PaymentRoutes(router, db)
+	routes.SearchRoutes(router, db)
 
 	r.Run(":8080")
 }
