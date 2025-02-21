@@ -16,7 +16,7 @@ func SetupDatabase() *gorm.DB {
 	}
 
 	// Auto-migrate models
-	db.AutoMigrate(&User{}, &Stop{}, &Route{}, &RouteStop{}, &Booking{}, &Payment{})
+	db.AutoMigrate(&User{}, &Stop{}, &Route{}, &RouteStop{}, &Booking{}, &Payment{}, &Ticket{}, &QRCode{})
 	return db
 }
 
@@ -82,3 +82,26 @@ type Payment struct {
 	User    User    `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Booking Booking `gorm:"foreignKey:BookingID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
+
+// Tickets Table
+type Ticket struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	UserID    uint      `json:"user_id"`
+	BookingID uint      `json:"booking_id"`
+	Generated_Status    bool    `json:"gen_status"` // generated or not generated
+	CreatedAt time.Time `json:"created_at"`
+	Booking  Booking `gorm:"foreignKey:BookingID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+
+}
+// QRCode Table
+type QRCode struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	UserID    uint      `json:"user_id"`
+	TicketID  uint      `json:"ticket_id"`
+	QRCode    string    `json:"qrcode"`
+	Status    string    `json:"status"` // enum Verified, NotVerified
+	ExpiryTime time.Time `json:"expiry_time"`
+	Ticket  Ticket `gorm:"foreignKey:TicketID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+
