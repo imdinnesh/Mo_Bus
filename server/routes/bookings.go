@@ -1,25 +1,19 @@
 package routes
 
-// route for handling bookings
-
 import (
+	"time"
+
 	"github.com/gin-gonic/gin"
+	"github.com/imdinnesh/mo_bus/database"
 	"github.com/imdinnesh/mo_bus/middleware"
 	"gorm.io/gorm"
-	"github.com/imdinnesh/mo_bus/database"
 )
 
 func BookingRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	bookingRouter := router.Group("/bookings", middleware.ProtectedMiddleware())
 
 	bookingRouter.POST("/", func(ctx *gin.Context) {
-		// bookings need userid, start stop id, end stop id
-		// get the user id from the token
-		// get the start stop id and end stop id from the request body
-		// create a booking
-		// deduct the amount from the user's balance
-		// return the booking
-		email:= ctx.GetString("email")
+		email := ctx.GetString("email")
 
 		var request struct {
 			StartStopID uint `json:"start_stop_id"`
@@ -42,24 +36,35 @@ func BookingRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			return
 		}
 
-		var booking database.Booking
-		booking.UserID = userID
-		booking.StartStopID = request.StartStopID
-		booking.EndStopID = request.EndStopID
-		booking.Amount = 10
+		// Create booking
+		booking := database.Booking{
+			UserID:      userID,
+			StartStopID: request.StartStopID,
+			EndStopID:   request.EndStopID,
+			Amount:      10,
+			Status:      "success",
+			BookingDate: time.Now(),
+		}
 
 		db.Create(&booking)
-		// do i have to update the payments table here?
 
-		
+		// Create payment
+		payment := database.Payment{
+			UserID:          userID,
+			BookingID:       booking.ID,
+			Amount:          10,
+			Status:          "success",
+			TransactionDate: time.Now(),
+		}
 
+		db.Create(&payment)
+
+		// Update user balance
 		user.Balance = availableBalance - 10
 		db.Save(&user)
 
-		ctx.JSON(200,gin.H{
+		ctx.JSON(200, gin.H{
 			"message": "Booking created successfully",
 		})
-
 	})
-
 }
