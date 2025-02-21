@@ -21,6 +21,7 @@ func main() {
 	routes.UserRoutes(router, db)
 	routes.PaymentRoutes(router, db)
 	routes.SearchRoutes(router, db)
+	routes.BookingRoutes(router, db)
 
 	r.Run(":8080")
 }
