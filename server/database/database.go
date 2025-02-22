@@ -89,7 +89,7 @@ type Ticket struct {
 	UserID    uint      `json:"user_id"`
 	BookingID uint      `json:"booking_id"`
 	Generated_Status    bool    `json:"gen_status"` // generated or not generated
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	Booking  Booking `gorm:"foreignKey:BookingID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 
 }
@@ -101,6 +101,7 @@ type QRCode struct {
 	QRCode    string    `json:"qrcode"`
 	Status    string    `json:"status"` // enum Verified, NotVerified
 	ExpiryTime time.Time `json:"expiry_time"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	Ticket  Ticket `gorm:"foreignKey:TicketID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 

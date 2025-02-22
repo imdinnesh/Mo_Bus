@@ -59,6 +59,18 @@ func BookingRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		db.Create(&payment)
 
+		// also create a ticket for the user
+
+		// Create ticket
+
+		ticket := database.Ticket{
+			UserID:           userID,
+			BookingID:        booking.ID,
+			Generated_Status: false,
+		}
+
+		db.Create(&ticket)
+
 		// Update user balance
 		user.Balance = availableBalance - 10
 		db.Save(&user)
