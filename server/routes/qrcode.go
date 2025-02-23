@@ -3,24 +3,79 @@ package routes
 import (
 	"fmt"
 	"time"
-
+	"gorm.io/gorm"
 	"github.com/gin-gonic/gin"
+	"github.com/imdinnesh/mo_bus/database"
 	"github.com/imdinnesh/mo_bus/middleware"
 	"github.com/imdinnesh/mo_bus/utils"
 )
 
-func QRCodeRoutes(router *gin.RouterGroup) {
+func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	qrRouter := router.Group("/qrcode", middleware.ProtectedMiddleware())
 
 	qrRouter.GET("/generate", func(ctx *gin.Context) {
+
+		var request struct {
+			TicketID  uint      `json:"ticket_id"` 
+		}
+
+		if err := ctx.ShouldBindJSON(&request); err != nil {
+			ctx.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		// also check if the ticket is already generated
+
+		var ticketCheck database.Ticket
+
+		db.Where("id = ?", request.TicketID).First(&ticketCheck)
+
+		if ticketCheck.Generated_Status {
+			ctx.JSON(400, gin.H{"error": "Ticket already generated"})
+			return
+		}
+
+
+
+
 		email := ctx.GetString("email")
-		expiryTime := time.Now().Add(30 * time.Minute).Unix() // 30 minutes expiry time
-		data := fmt.Sprintf("ticket:%s:%d", email, expiryTime)
+
+		var user database.User
+
+		db.Where("email = ?", email).First(&user)
+
+		expiryTime := time.Now().Add(30 * time.Minute) // 30 minutes expiry time
+		data := fmt.Sprintf("ticket:%s:%d", email, expiryTime.Unix())
 		qrCode, err := utils.GenerateQRCode(data)
 		if err != nil {
 			ctx.JSON(500, gin.H{"error": "Failed to generate QR code"})
 			return
 		}
+
+		// Create Qr code entry
+
+		qrCodeEntry := database.QRCode{
+			UserID: user.ID,
+			TicketID: request.TicketID,
+			QRCode: qrCode, // prefix is not added here
+			ExpiryTime: expiryTime,
+			Verified_Status: false,
+
+		}
+
+		db.Create(&qrCodeEntry)
+
+		// now update the ticket status in Ticket table
+
+		var ticket database.Ticket
+
+		db.Where("id = ?", request.TicketID).First(&ticket)
+
+		ticket.Generated_Status = true
+
+		db.Save(&ticket)
+
+
 
 		ctx.JSON(200, gin.H{
 			"message": "QR code generated",

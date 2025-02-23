@@ -99,7 +99,7 @@ type QRCode struct {
 	UserID    uint      `json:"user_id"`
 	TicketID  uint      `json:"ticket_id"`
 	QRCode    string    `json:"qrcode"`
-	Status    string    `json:"status"` // enum Verified, NotVerified
+	Verified_Status    bool    `json:"status"` // enum Verified, NotVerified
 	ExpiryTime time.Time `json:"expiry_time"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	Ticket  Ticket `gorm:"foreignKey:TicketID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
