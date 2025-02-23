@@ -1,14 +1,24 @@
 package main
 
 import (
+	"os"
+
 	"github.com/gin-gonic/gin"
 	"github.com/imdinnesh/mo_bus/database"
 	"github.com/imdinnesh/mo_bus/routes"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	db := database.SetupDatabase()
-	// database.SeedDatabase(db)
+	database.SeedDatabase(db)
+
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
+
 
 	r := gin.Default()
 	//Adding a test route
@@ -25,5 +35,7 @@ func main() {
 	routes.BookingRoutes(router, db)
 	routes.QRCodeRoutes(router, db)
 
-	r.Run(":8080")
+	port:=os.Getenv("PORT")
+
+	r.Run(":"+port)
 }
