@@ -25,24 +25,31 @@ func GenerateQRCode(data string) (string, error) {
 	return base64Image, nil
 }
 
-func VerifyQRCode(qrCode string) (bool, error) {
+func VerifyQRCode(qrCode string) (int64, bool, error) {
 	// Extract the email and expiry time from the QR code data
 	var expiryTime int64
 
 	parts := strings.Split(qrCode, ":")
 	if len(parts) != 3 {
-		return false, fmt.Errorf("invalid ticket format")
+		return 0,false, fmt.Errorf("invalid ticket format")
 	}
 
-	expiryTime, err := strconv.ParseInt(parts[2], 10, 64)
+	TicketID,err:= strconv.ParseInt(parts[1], 10, 64)
+
 	if err != nil {
-		return false, fmt.Errorf("invalid ticket format")
+		return 0,false, fmt.Errorf("invalid ticket format")
+	}
+
+
+	expiryTime, err = strconv.ParseInt(parts[2], 10, 64)
+	if err != nil {
+		return 0,false, fmt.Errorf("invalid ticket format")
 	}
 
 	// Check if the QR code has expired
 	if time.Now().Unix() > expiryTime {
-		return false, nil
+		return 0,false, nil
 	}
 
-	return true, nil
+	return TicketID,true, nil
 }

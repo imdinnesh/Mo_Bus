@@ -3,11 +3,12 @@ package routes
 import (
 	"fmt"
 	"time"
-	"gorm.io/gorm"
+
 	"github.com/gin-gonic/gin"
 	"github.com/imdinnesh/mo_bus/database"
 	"github.com/imdinnesh/mo_bus/middleware"
 	"github.com/imdinnesh/mo_bus/utils"
+	"gorm.io/gorm"
 )
 
 func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
@@ -16,7 +17,7 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	qrRouter.GET("/generate", func(ctx *gin.Context) {
 
 		var request struct {
-			TicketID  uint      `json:"ticket_id"` 
+			TicketID  uint  `json:"ticket_id"` 
 		}
 
 		if err := ctx.ShouldBindJSON(&request); err != nil {
@@ -45,7 +46,12 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		db.Where("email = ?", email).First(&user)
 
 		expiryTime := time.Now().Add(30 * time.Minute) // 30 minutes expiry time
-		data := fmt.Sprintf("ticket:%s:%d", email, expiryTime.Unix())
+
+		// add the ticket id to the data
+		data := fmt.Sprintf("%s:%d:%d", user.Email, request.TicketID, expiryTime.Unix())
+		
+
+
 		qrCode, err := utils.GenerateQRCode(data)
 		if err != nil {
 			ctx.JSON(500, gin.H{"error": "Failed to generate QR code"})
@@ -94,9 +100,14 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		}
 
 		// Verify the QR code
-		valid, err := utils.VerifyQRCode(request.QRCode)
+		ticketid,valid,err := utils.VerifyQRCode(request.QRCode)
 		if err != nil {
 			ctx.JSON(400, gin.H{"error": "Invalid ticket format"})
+			return
+		}
+
+		if ticketid==0{
+			ctx.JSON(400, gin.H{"error": "Ticket has expired"})
 			return
 		}
 
@@ -104,6 +115,16 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			ctx.JSON(400, gin.H{"error": "Ticket has expired"})
 			return
 		}
+
+		// Update the QR code status
+
+		qrcode:=database.QRCode{}
+
+		db.Where("ticket_id = ?", ticketid).First(&qrcode)
+
+		qrcode.Verified_Status=true
+
+		db.Save(&qrcode)
 
 		ctx.JSON(200, gin.H{
 			"message":"Ticket verified",
