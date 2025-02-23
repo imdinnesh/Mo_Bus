@@ -11,6 +11,7 @@ func main() {
 	// database.SeedDatabase(db)
 
 	r := gin.Default()
+	//Adding a test route
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
@@ -22,7 +23,7 @@ func main() {
 	routes.PaymentRoutes(router, db)
 	routes.SearchRoutes(router, db)
 	routes.BookingRoutes(router, db)
-	routes.QRCodeRoutes(router,db)
+	routes.QRCodeRoutes(router, db)
 
 	r.Run(":8080")
 }
