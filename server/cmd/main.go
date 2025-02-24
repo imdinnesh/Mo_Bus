@@ -11,7 +11,7 @@ import (
 
 func main() {
 	db := database.SetupDatabase()
-	database.SeedDatabase(db)
+	// database.SeedDatabase(db)
 
 	err := godotenv.Load()
 	if err != nil {

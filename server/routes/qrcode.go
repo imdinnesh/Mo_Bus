@@ -36,19 +36,15 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			return
 		}
 
+		userId:=ctx.GetUint("userId")
+		email:=ctx.GetString("email")
 
-
-
-		email := ctx.GetString("email")
-
-		var user database.User
-
-		db.Where("email = ?", email).First(&user)
+		
 
 		expiryTime := time.Now().Add(30 * time.Minute) // 30 minutes expiry time
 
 		// add the ticket id to the data
-		data := fmt.Sprintf("%s:%d:%d", user.Email, request.TicketID, expiryTime.Unix())
+		data := fmt.Sprintf("%s:%d:%d", email, request.TicketID, expiryTime.Unix())
 		
 
 
@@ -61,7 +57,7 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		// Create Qr code entry
 
 		qrCodeEntry := database.QRCode{
-			UserID: user.ID,
+			UserID: userId,
 			TicketID: request.TicketID,
 			QRCode: qrCode, // prefix is not added here
 			ExpiryTime: expiryTime,

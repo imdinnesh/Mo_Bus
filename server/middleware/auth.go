@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imdinnesh/mo_bus/database"
 	"github.com/imdinnesh/mo_bus/utils"
 )
 
@@ -25,7 +26,13 @@ func ProtectedMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		var user database.User
+		db := database.SetupDatabase()
+		db.Where("email = ?", email).First(&user)
+
 		ctx.Set("email", email)
+		ctx.Set("userId", user.ID)
+
 		ctx.Next()
 	}
 }
