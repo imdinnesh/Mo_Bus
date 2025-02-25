@@ -34,6 +34,7 @@ func main() {
 	routes.SearchRoutes(router, db)
 	routes.BookingRoutes(router, db)
 	routes.QRCodeRoutes(router, db)
+	routes.DashboardRoutes(router, db)
 
 	port:=os.Getenv("PORT")
 
