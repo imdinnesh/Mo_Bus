@@ -31,7 +31,7 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		db.Where("id = ?", request.TicketID).First(&ticketCheck)
 
-		if ticketCheck.Generated_Status {
+		if ticketCheck.GeneratedStatus {
 			ctx.JSON(400, gin.H{"error": "Ticket already generated"})
 			return
 		}
@@ -59,9 +59,9 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		qrCodeEntry := database.QRCode{
 			UserID: userId,
 			TicketID: request.TicketID,
-			QRCode: qrCode, // prefix is not added here
+			QRCodeData: qrCode, // prefix is not added here
 			ExpiryTime: expiryTime,
-			Verified_Status: false,
+			VerifiedStatus: false,
 
 		}
 
@@ -73,7 +73,7 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		db.Where("id = ?", request.TicketID).First(&ticket)
 
-		ticket.Generated_Status = true
+		ticket.GeneratedStatus = true
 
 		db.Save(&ticket)
 
@@ -118,7 +118,7 @@ func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		db.Where("ticket_id = ?", ticketid).First(&qrcode)
 
-		qrcode.Verified_Status=true
+		qrcode.VerifiedStatus=true
 
 		db.Save(&qrcode)
 

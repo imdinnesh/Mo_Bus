@@ -10,14 +10,13 @@ import (
 )
 
 func SetupDatabase() *gorm.DB {
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
 	connStr := os.Getenv("DATABASE_URL")
-	
+
 	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
@@ -49,18 +48,18 @@ type Route struct {
 	RouteName         string      `json:"route_name"`
 	SourceStopID      uint        `json:"source_stop_id"`
 	DestinationStopID uint        `json:"destination_stop_id"`
-	SourceStop        Stop        `gorm:"foreignKey:SourceStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	DestinationStop   Stop        `gorm:"foreignKey:DestinationStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	SourceStop        Stop        `gorm:"foreignKey:SourceStopID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
+	DestinationStop   Stop        `gorm:"foreignKey:DestinationStopID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;"`
 	RouteStops        []RouteStop `gorm:"foreignKey:RouteID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Route Stops Table (Maps Stops to Routes)
 type RouteStop struct {
-	ID      uint  `gorm:"primaryKey" json:"id"`
-	RouteID uint  `json:"route_id"`
-	StopID  uint  `json:"stop_id"`
-	Route   Route `gorm:"foreignKey:RouteID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Stop    Stop  `gorm:"foreignKey:StopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ID      uint `gorm:"primaryKey" json:"id"`
+	RouteID uint `json:"route_id"`
+	StopID  uint `json:"stop_id"`
+	Route   Route `gorm:"foreignKey:RouteID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Stop    Stop  `gorm:"foreignKey:StopID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Bookings Table
@@ -73,9 +72,9 @@ type Booking struct {
 	Status      string    `json:"status"` // enum: pending, success, failed
 	BookingDate time.Time `json:"booking_date"`
 
-	User      User `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	StartStop Stop `gorm:"foreignKey:StartStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	EndStop   Stop `gorm:"foreignKey:EndStopID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	User      User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	StartStop Stop `gorm:"foreignKey:StartStopID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	EndStop   Stop `gorm:"foreignKey:EndStopID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // Payments Table
@@ -87,30 +86,32 @@ type Payment struct {
 	Status          string    `json:"status"` // enum: pending, success, failed
 	TransactionDate time.Time `json:"transaction_date"`
 
-	User    User    `gorm:"foreignKey:UserID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Booking Booking `gorm:"foreignKey:BookingID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	User    User    `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Booking Booking `gorm:"foreignKey:BookingID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // Tickets Table
 type Ticket struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	UserID    uint      `json:"user_id"`
-	BookingID uint      `json:"booking_id"`
-	Generated_Status    bool    `json:"gen_status"` // generated or not generated
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	Booking  Booking `gorm:"foreignKey:BookingID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ID             uint      `gorm:"primaryKey" json:"id"`
+	UserID         uint      `json:"user_id"`
+	BookingID      uint      `json:"booking_id"`
+	GeneratedStatus bool      `json:"gen_status"` // generated or not generated
+	CreatedAt      time.Time `gorm:"autoCreateTime" json:"created_at"`
 
+	User    User    `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Booking Booking `gorm:"foreignKey:BookingID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
+
 // QRCode Table
 type QRCode struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	UserID    uint      `json:"user_id"`
-	TicketID  uint      `json:"ticket_id"`
-	QRCode    string    `json:"qrcode"`
-	Verified_Status    bool    `json:"status"` // enum Verified, NotVerified
-	ExpiryTime time.Time `json:"expiry_time"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
-	Ticket  Ticket `gorm:"foreignKey:TicketID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ID             uint      `gorm:"primaryKey" json:"id"`
+	UserID         uint      `json:"user_id"`
+	TicketID       uint      `json:"ticket_id"`
+	QRCodeData     string    `json:"qrcode"`
+	VerifiedStatus bool      `json:"status"` // enum Verified, NotVerified
+	ExpiryTime     time.Time `json:"expiry_time"`
+	CreatedAt      time.Time `gorm:"autoCreateTime" json:"created_at"`
+
+	User   User   `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Ticket Ticket `gorm:"foreignKey:TicketID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
-
-

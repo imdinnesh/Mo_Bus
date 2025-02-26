@@ -66,7 +66,7 @@ func BookingRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		ticket := database.Ticket{
 			UserID:           userID,
 			BookingID:        booking.ID,
-			Generated_Status: false,
+			GeneratedStatus: false,
 		}
 
 		db.Create(&ticket)
