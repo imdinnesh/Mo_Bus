@@ -34,4 +34,50 @@ func DashboardRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 	})
 
+    dashboardRouter.GET("/tickets",func(ctx *gin.Context) {
+        userId:=ctx.GetUint("userId")
+
+        // get the the tickets booked by the user which are not generated
+
+        var tickets []struct {
+            Id uint `json:"id"`
+            CreatedAt string `json:"created_at"`
+            BookingID uint `json:"booking_id"`
+        }
+
+        db.Model(&database.Ticket{}).
+        Select("created_at, booking_id","id").Where("user_id = ? AND generated_status = ?",userId,false).Find(&tickets)
+
+        bookingIds:=make([]uint,len(tickets))
+
+        for i,ticket:=range tickets{
+            bookingIds[i]=ticket.BookingID
+        }
+
+        var bookings []struct {
+            StartStopID  uint   `json:"start_stop_id"`
+            EndStopID    uint   `json:"end_stop_id"`
+            Amount       float64 `json:"amount"`
+        }
+
+        db.Model(&database.Booking{}).
+        Select("start_stop_id, end_stop_id, amount").
+        Where("id IN ?",bookingIds).
+        Find(&bookings)
+
+        ctx.JSON(200,gin.H{
+            "tickets":tickets,
+            "bookings":bookings,
+        })
+
+
+
+
+    })
+
+
+
+    
+
+
 }
