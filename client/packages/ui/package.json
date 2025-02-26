@@ -8,6 +8,9 @@
     "dev": "tsup --watch",
     "clean": "rm -rf dist"
   },
+  "exports": {
+    "./*": "./src/*.tsx"
+  },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/react": "^18.2.14",
