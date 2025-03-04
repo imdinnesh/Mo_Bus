@@ -1,8 +1,11 @@
-export default function SignInPage() {
+import { LoginForm } from "@/components/login-form"
+
+export default function Page() {
     return (
-        <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-        <h1 className="text-4xl font-bold text-center">Sign In</h1>
-        <p className="text-lg text-center">Page</p>
+        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+            <div className="w-full max-w-sm">
+                <LoginForm />
+            </div>
         </div>
-    );
+    )
 }
