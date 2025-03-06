@@ -7,6 +7,7 @@ import (
 	"github.com/imdinnesh/mo_bus/database"
 	"github.com/imdinnesh/mo_bus/routes"
 	"github.com/joho/godotenv"
+	"github.com/gin-contrib/cors"
 )
 
 func main() {
@@ -22,6 +23,8 @@ func main() {
 
 	r := gin.Default()
 	//Adding a test route
+
+	r.Use((cors.Default()))
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",

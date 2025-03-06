@@ -15,7 +15,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		var user database.User
 		ctx.BindJSON(&user)
 
-		if user.Email == "" || user.Password == "" {
+		if user.Email == "" || user.Password == "" || user.Name=="" {
 			ctx.JSON(400, gin.H{
 				"message": "Email or password is empty",
 			})

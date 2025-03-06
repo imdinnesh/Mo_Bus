@@ -1,3 +1,4 @@
+"use client"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -9,11 +10,35 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useState } from "react"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const handleClick = async (e: any) => {
+    e.preventDefault()
+    const res = await fetch('http://localhost:8080/user/signin', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    })
+    if (res.ok) {
+      console.log('User logged in')
+
+
+      
+    } else {
+      console.error('Failed to log in')
+    }
+  }
+
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -32,6 +57,7 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="m@example.com"
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                 />
               </div>
@@ -45,10 +71,14 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" type="password"
+
+                  placeholder="Password"
+                  onChange={(e) => setPassword(e.target.value)}
+                  required />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" onClick={handleClick}>
                   Login
                 </Button>
                 <Button variant="outline" className="w-full">
