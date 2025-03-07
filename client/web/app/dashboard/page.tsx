@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react'
-import { userroute } from "@/configs/url"
+import { userroute } from '@/configs/url'
 
 export default function TestAuth() {
   const [data, setData] = useState(null)
@@ -9,7 +9,7 @@ export default function TestAuth() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const response = await fetch(`${userroute}/profile`, {
+        const response = await fetch('http://localhost:8080/user/profile', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
