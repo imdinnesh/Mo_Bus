@@ -8,6 +8,7 @@ import (
 	"github.com/imdinnesh/mo_bus/routes"
 	"github.com/joho/godotenv"
 	"github.com/gin-contrib/cors"
+	"time"
 )
 
 func main() {
@@ -24,7 +25,14 @@ func main() {
 	r := gin.Default()
 	//Adding a test route
 
-	r.Use((cors.Default()))
+	r.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:3000"}, // Your Next.js app URL
+        AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge:           12 * time.Hour,
+    }))
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
