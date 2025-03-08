@@ -24,8 +24,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		user.Balance = 0.0 // Initialize balance to 0
 		db.Create(&user)
-		ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
-
+		ctx.SetCookie("token", "", -1, "/", "localhost", false, true)		
 		ctx.JSON(200, gin.H{
 			"message": "User created",
 		})
@@ -65,18 +64,10 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			return
 		}
 		
-		// Updated cookie settings to work with cross-origin requests
-		ctx.SetCookie(
-			"token",           // name
-			tokenString,       // value
-			3600,              // max age in seconds
-			"/",               // path
-			"",                // domain (empty = current domain only)
-			false,             // secure (false for development, true for production)
-			true,              // http only
-		)
-		
-		// Also send the token in the response body for client-side handling if needed
+		// set cookie for 20 days
+		ctx.SetCookie("token", tokenString, 3600*24*20, "/", "localhost", false, true)
+
+
 		ctx.JSON(200, gin.H{
 			"message": "User signed in",
 			"token": tokenString,
