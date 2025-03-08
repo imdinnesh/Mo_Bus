@@ -136,6 +136,11 @@ func SearchRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		// 	return
 		// }
 
+		if(stops==nil && routeStops==nil){
+			ctx.JSON(400,gin.H{"error":"No stops found"})
+			return
+		}
+
 		ctx.JSON(200, gin.H{
 			"message": "Stops accessed",
 			"stops": stops,
