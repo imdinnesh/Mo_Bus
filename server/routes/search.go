@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imdinnesh/mo_bus/middleware"
 	"gorm.io/gorm"
+	"strings"
 )
 
 // SearchRoutes is used to define the search routes
@@ -86,11 +87,70 @@ func SearchRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		}
 
 		err:=ctx.BindJSON(&request)
+
 		if err!=nil{
 			ctx.JSON(400,gin.H{"error":"Invalid request"})
 			return
 		}
+
+		if(request.Query==""){
+			ctx.JSON(400,gin.H{"error":"Invalid request"})
+			return
+		}
+
+		// search for stop name or stop number
+
+		// stops are stored in the stops table and route stops are stored in the route table
+
+		var stops []struct{
+			StopID uint `json:"stop_id"`
+			StopName string `json:"stop_name"`
+		}
+
+		// use gorm to get the stops that match the search query
+
+		// use lowercase for case-insensitive search
+		// use % to match any number of characters before and after the search query
+		// use LIKE to match the search query
+
+		request.Query = strings.ToLower(request.Query)
+
+		db.Select("id as stop_id, stop_name").Table("stops").Where("LOWER(stop_name) LIKE ?", "%"+request.Query+"%").Scan(&stops)
 		
+		// if stops == nil {
+		// 	ctx.JSON(400, gin.H{"error": "No stops found"})
+		// 	return
+		// }
+
+		// also search for stop number in route table
+
+		var routeStops []struct{
+			RouteNumber string `json:"route_number"`
+			RouteName string `json:"route_name"`
+		}
+
+		db.Select("route_name,route_number").Table("routes").Where("LOWER(route_number) LIKE ?", "%"+request.Query+"%").Scan(&routeStops)
+
+		// if routeStops == nil {
+		// 	ctx.JSON(400, gin.H{"error": "No stops found"})
+		// 	return
+		// }
+
+		ctx.JSON(200, gin.H{
+			"message": "Stops accessed",
+			"stops": stops,
+			"route_stops": routeStops,
+		})
+
+
+
+
+
+
+
+
+
+
 		
 
 
