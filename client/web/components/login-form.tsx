@@ -51,12 +51,14 @@ export function LoginForm({
       // Manually set the token as a cookie if it's not being set by the server
       if (data.token) {
         Cookies.set('token', data.token, { 
-          expires: 1/24, // 1 hour in days
+          expires: 20,
           path: '/',
           secure: process.env.NODE_ENV === 'production',
           sameSite: 'lax'
         })
       }
+      // save the user data in sessino storage
+      window.sessionStorage.setItem('tokeen', data.token)
 
       console.log('User logged in successfully')
       router.push('/dashboard')

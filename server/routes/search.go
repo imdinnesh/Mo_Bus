@@ -14,7 +14,7 @@ func SearchRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	searchRouter := router.Group("/search",middleware.ProtectedMiddleware())
 
 
-	searchRouter.GET("/", func(ctx *gin.Context) {
+	searchRouter.POST("/", func(ctx *gin.Context) {
 		// user can give source and destination stops or route number
 		// if source and destination stops are given, return the routes that connect the two stops
 		// if route number is given, return the stops in the route
@@ -70,6 +70,28 @@ func SearchRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 
 
+
+
+
+	})
+
+	searchRouter.POST("/stops", func(ctx *gin.Context) {
+		// search for stops by name or stop number
+		// return the stops that match the search query
+
+		// user can give stop name or stop number
+
+		var request struct {
+			Query    string `json:"query"`
+		}
+
+		err:=ctx.BindJSON(&request)
+		if err!=nil{
+			ctx.JSON(400,gin.H{"error":"Invalid request"})
+			return
+		}
+		
+		
 
 
 
