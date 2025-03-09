@@ -112,8 +112,9 @@ async function StopsList({ route_no }: { route_no: string }) {
     }
 }
 
-export default function ShowStops({ params }: { params: Params }) {
-    const route_no =params.route_no
+export default async function ShowStops({ params }: { params: Params }) {
+    const paras= await params
+    const route_no = paras.route_no
 
     return (
         <div className="flex min-h-svh w-full justify-center p-6 md:p-10">
