@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Bus, MapPin, Search } from "lucide-react"
 import axios from "axios"
 import { SelectStop } from "./select-stop"
+import { useRouter } from "next/navigation"
 
 type Stop = {
     stop_id: number
@@ -27,6 +28,8 @@ export const BookTicket = ({ route_no }: { route_no: string }) => {
     const [destinationStop, setDestinationStop] = useState<Stop | null>(null);
     const [sourceStopOpen, setSourceStopOpen] = useState(false);
     const [destinationStopOpen, setDestinationStopOpen] = useState(false);
+
+    const router = useRouter();
 
     const getStops = async (routeNum: string) => {
         if (!routeNum.trim()) return;
@@ -56,13 +59,6 @@ export const BookTicket = ({ route_no }: { route_no: string }) => {
             setIsLoading(false)
         }
     }
-
-    useEffect(() => {
-        if (route_no) {
-            setRoute_number(route_no)
-            getStops(route_no)
-        }
-    }, [route_no])
 
     const handleRouteChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setRoute_number(e.target.value)
@@ -109,7 +105,7 @@ export const BookTicket = ({ route_no }: { route_no: string }) => {
                                 }
                             }}
                         />
-                        <Button 
+                        <Button
                             onClick={handleSearch}
                             disabled={isLoading}
                             className="min-w-[100px]"
@@ -181,6 +177,16 @@ export const BookTicket = ({ route_no }: { route_no: string }) => {
                                         <p className="text-xs text-muted-foreground">Stop ID: {destinationStop.stop_id}</p>
                                     </div>
                                 </div>
+                                <Button 
+                                onClick={()=>{
+                                    // add the id as query param
+                                    router.push(`/payment?source=${sourceStop.stop_id}&destination=${destinationStop.stop_id}`)
+                                }}
+                                className="w-32 mt-5 align-middle" 
+                                disabled={!sourceStop || !destinationStop}>
+                                    Book Ticket
+                                </Button>
+
                             </div>
                         )}
                     </div>

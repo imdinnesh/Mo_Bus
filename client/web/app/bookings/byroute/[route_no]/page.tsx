@@ -126,6 +126,7 @@ export default async function ShowStops({ params }: { params: Params }) {
 
                         <CardDescription className="text-base mt-2">
                             List of all stops for route number {route_no}
+
                         </CardDescription>
                         <Link href={`/ticket/byroute/`}>
                             <Button variant="outline" className="flex items-center gap-2 mt-4">
