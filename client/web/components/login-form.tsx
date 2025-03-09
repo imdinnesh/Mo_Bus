@@ -58,7 +58,7 @@ export function LoginForm({
         })
       }
       // save the user data in sessino storage
-      window.sessionStorage.setItem('tokeen', data.token)
+      window.sessionStorage.setItem('token', data.token)
 
       console.log('User logged in successfully')
       router.push('/dashboard')

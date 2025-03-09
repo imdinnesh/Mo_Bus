@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SeachProps } from "@/models/searchprops"
-
+import Link from 'next/link'
 type Stops = {
     stop_id: number
     stop_name: string
@@ -30,6 +30,7 @@ export function SearchBar() {
     const [result, setResult] = useState<Result | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [hasSearched, setHasSearched] = useState(false)
+
 
     const searchRoute = async () => {
         if (!search.trim()) return
@@ -160,6 +161,9 @@ export function SearchBar() {
                                             <div>
                                                 <h3 className="font-medium">{route.route_name}</h3>
                                                 <p className="text-sm text-muted-foreground">Route #{route.route_number}</p>
+                                                <Link href={`/bookings/byroute/${route.route_number}`}>
+                                                    View Stops
+                                                </Link>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -196,4 +200,3 @@ export function SearchBar() {
         </div>
     )
 }
-
