@@ -1,9 +1,9 @@
-import axios from "axios";
+import { MakePayment } from "@/components/make-payment";
+
 type SearchParams = {
     source?: string;
     destination?: string;
 };
-
 
 interface PageProps {
     searchParams: SearchParams;
@@ -14,16 +14,9 @@ export default function PaymentPage({ searchParams }: PageProps) {
     const source = searchParams.source;
     const destination = searchParams.destination;
 
-    
-
     return (
         <div>
-            <h1>Payment Page</h1>
-
-            <p>Source: {source}</p>
-            <p>Destination: {destination}</p>
-            
-
+            <MakePayment source={source} destination={destination} />
         </div>
     );
 }
