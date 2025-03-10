@@ -77,6 +77,7 @@ func BookingRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		ctx.JSON(200, gin.H{
 			"message": "Booking created successfully",
+			"ticket_id":ticket.ID,
 		})
 	})
 }

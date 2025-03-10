@@ -112,9 +112,8 @@ async function StopsList({ route_no }: { route_no: string }) {
     }
 }
 
-export default async function ShowStops({ params }: { params: Params }) {
-    const paras= await params
-    const route_no = paras.route_no
+export default function ShowStops({ params }: { params: Params }) {
+    const route_no = params.route_no
 
     return (
         <div className="flex min-h-svh w-full justify-center p-6 md:p-10">
@@ -123,17 +122,15 @@ export default async function ShowStops({ params }: { params: Params }) {
                     <CardHeader className="pb-4">
                         <CardTitle className="text-3xl font-bold">Route {route_no}</CardTitle>
                         <div className="flex flex-row gap-2 justify-between items-center">
-
-                        <CardDescription className="text-base mt-2">
-                            List of all stops for route number {route_no}
-
-                        </CardDescription>
-                        <Link href={`/ticket/byroute/`}>
-                            <Button variant="outline" className="flex items-center gap-2 mt-4">
-                                Book Tickets
-                                <ArrowRight className="h-5 w-5" />
-                            </Button>
-                        </Link>
+                            <CardDescription className="text-base mt-2">
+                                List of all stops for route number {route_no}
+                            </CardDescription>
+                            <Link href={`/ticket/byroute/`}>
+                                <Button variant="outline" className="flex items-center gap-2 mt-4">
+                                    Book Tickets
+                                    <ArrowRight className="h-5 w-5" />
+                                </Button>
+                            </Link>
                         </div>
                     </CardHeader>
                     <CardContent className="pt-2 pb-6">

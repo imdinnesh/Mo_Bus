@@ -14,7 +14,7 @@ import (
 func QRCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	qrRouter := router.Group("/qrcode", middleware.ProtectedMiddleware())
 
-	qrRouter.GET("/generate", func(ctx *gin.Context) {
+	qrRouter.POST("/generate", func(ctx *gin.Context) {
 
 		var request struct {
 			TicketID  uint  `json:"ticket_id"` 
