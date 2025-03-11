@@ -61,8 +61,8 @@ export const GenerateQrCode = ({ ticket_id, qrCodeGenerated, onQrCodeGenerated, 
             <h3 className="text-lg font-medium">Ticket #{ticket_id}</h3>
 
             {!qrCodeGenerated ? (
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <Button className="flex-1" onClick={handleGenerateQrCode} disabled={isLoading}>
+                <div className="flex flex-col gap-2">
+                    <Button className="w-full" onClick={handleGenerateQrCode} disabled={isLoading}>
                         {isLoading ? (
                             <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -76,7 +76,7 @@ export const GenerateQrCode = ({ ticket_id, qrCodeGenerated, onQrCodeGenerated, 
                         )}
                     </Button>
 
-                    <Button variant="outline" className="flex-1" onClick={onUseLater}>
+                    <Button variant="outline" className="w-full" onClick={onUseLater}>
                         <Clock className="mr-2 h-4 w-4" />
                         Use Later
                     </Button>

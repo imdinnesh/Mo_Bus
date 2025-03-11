@@ -118,7 +118,7 @@ export const MakePayment = ({ source, destination }: PageProps) => {
 
     if (isCheckingTicket) {
         return (
-            <Card className="w-full max-w-md mx-auto shadow-lg">
+            <Card className="w-full max-w-4xl mx-auto shadow-lg">
                 <CardContent className="flex justify-center items-center py-12">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     <span className="ml-2">Loading ticket information...</span>
@@ -128,7 +128,7 @@ export const MakePayment = ({ source, destination }: PageProps) => {
     }
 
     return (
-        <Card className="w-full max-w-md mx-auto shadow-lg">
+        <Card className="w-full max-w-4xl mx-auto shadow-lg">
             <CardHeader className="bg-primary/5">
                 <CardTitle className="text-2xl flex items-center gap-2">
                     <CreditCard className="h-6 w-6" />
@@ -142,43 +142,43 @@ export const MakePayment = ({ source, destination }: PageProps) => {
             </CardHeader>
 
             <CardContent className="pt-6">
-                <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                        <div className="mt-1">
-                            <MapPin className="h-5 w-5 text-green-500" />
+                <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex-1 space-y-4">
+                        <div className="flex items-center gap-4">
+                            <MapPin className="h-5 w-5 text-green-500 flex-shrink-0" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">From</p>
+                                <p className="font-medium">{ticketInfo?.source || source || "Not specified"}</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">From</p>
-                            <p className="font-medium">{ticketInfo?.source || source || "Not specified"}</p>
+
+                        <div className="flex justify-center">
+                            <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <MapPin className="h-5 w-5 text-red-500 flex-shrink-0" />
+                            <div>
+                                <p className="text-sm text-muted-foreground">To</p>
+                                <p className="font-medium">{ticketInfo?.destination || destination || "Not specified"}</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div className="flex justify-center">
-                        <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                        <div className="mt-1">
-                            <MapPin className="h-5 w-5 text-red-500" />
-                        </div>
-                        <div>
-                            <p className="text-sm text-muted-foreground">To</p>
-                            <p className="font-medium">{ticketInfo?.destination || destination || "Not specified"}</p>
-                        </div>
-                    </div>
+                    {ticketInfo && (
+                        <>
+                            <Separator orientation="vertical" className="hidden md:block" />
+                            <div className="flex-1">
+                                <GenerateQrCode
+                                    ticket_id={ticketInfo.ticketId}
+                                    qrCodeGenerated={ticketInfo.qrCodeGenerated}
+                                    onQrCodeGenerated={handleQrCodeGenerated}
+                                    onUseLater={handleUseLater}
+                                />
+                            </div>
+                        </>
+                    )}
                 </div>
-
-                {ticketInfo && (
-                    <>
-                        <Separator className="my-6" />
-                        <GenerateQrCode
-                            ticket_id={ticketInfo.ticketId}
-                            qrCodeGenerated={ticketInfo.qrCodeGenerated}
-                            onQrCodeGenerated={handleQrCodeGenerated}
-                            onUseLater={handleUseLater}
-                        />
-                    </>
-                )}
             </CardContent>
 
             <CardFooter className="flex gap-2 justify-end bg-muted/20 p-4">
