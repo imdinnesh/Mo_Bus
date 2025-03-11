@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cookies } from "next/headers";
+import axios,{AxiosResponse} from "axios";
 
 type Booking = {
     start_stop_id: number;
@@ -40,32 +41,25 @@ export default async function HistoryPage() {
 
 
     try{
-        const response = await fetch("http://localhost:8080/dashboard/bookings", {
-            method: "GET",
-            credentials: "include",
+        const response: AxiosResponse<BookingResponse> = await axios.get("http://localhost:8080/dashboard/bookings",{
+            withCredentials: true,
             headers: {
                 "Content-Type": "application/json",
                 ...(token && { Authorization: `Bearer ${token.value}` }),
             },
-            cache: "no-store", // Ensure fresh data on each request
         });
-
-        if(response.statusText==="OK"){
-            loading = false
-            const data = await response.json();
-            bookings = data.bookings;
-        }
-    
-
-    }
-    catch(error){
-
+        bookings = response.data.bookings
         loading = false
-        error = "An error occured while fetching data"
+    }catch(err){
+        loading = false
+        if (axios.isAxiosError(err) && err.response) {
+            error = err.response.data.error || "Failed to load profile"
+        } else {
+            error = "An error occurred while fetching user profile"
+        }
+        console.log(error)
     }
     
-    
-
     // Calculate stats
     const totalAmount = bookings.reduce((sum, booking) => sum + booking.amount, 0);
     const uniqueRoutes = new Set(
