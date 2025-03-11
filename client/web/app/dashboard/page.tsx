@@ -7,6 +7,19 @@ import { Button } from "@/components/ui/button"
 import { Wallet, CreditCard, History, ArrowRight } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 
+type Ticket = {
+    id: number;
+    created_at: string; // Can be converted to Date if needed
+    booking_id: number;
+    start_stop_name: string;
+    end_stop_name: string;
+};
+
+type TicketResponse = {
+    tickets: Ticket[];
+};
+
+
 export default async function Dashboard() {
     // Get the token from cookies
     const cookieStore = await cookies()
@@ -15,6 +28,10 @@ export default async function Dashboard() {
     let data = null
     let error = null
     let loading = true
+
+    let loading2 = true
+    let error2 = null
+    let data2 = null
 
     try {
         const request = await axios.get("http://localhost:8080/user/profile", {
@@ -38,6 +55,33 @@ export default async function Dashboard() {
         }
         console.log(error)
     }
+
+    try {
+        const request = await axios.get("http://localhost:8080/dashboard/tickets", {
+            withCredentials: true,
+            headers: {
+                "Content-Type": "application/json",
+                ...(token && { Authorization: `Bearer ${token.value}` }),
+            },
+        })
+
+        if (request.statusText === "OK") {
+            data2 = request.data as TicketResponse
+            loading2 = false
+        }
+    } catch (err) {
+        loading2 = false
+        if (axios.isAxiosError(err) && err.response) {
+            error2 = err.response.data.error || "Failed to load tickets"
+        } else {
+            error2 = "An error occurred while fetching user tickets"
+        }
+        console.log(error2)
+    }
+
+
+
+
 
     return (
         <div className="min-h-svh w-full bg-gradient-to-b from-background to-background/80">
@@ -90,7 +134,7 @@ export default async function Dashboard() {
                             <CardDescription>Your recent ticket purchases and trips</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {loading ? (
+                            {loading2 ? (
                                 <div className="space-y-2">
                                     <Skeleton className="h-12 w-full" />
                                     <Skeleton className="h-12 w-full" />
@@ -98,8 +142,32 @@ export default async function Dashboard() {
                                 </div>
                             ) : (
                                 <div className="text-muted-foreground text-center py-6">
-                                    <p>No recent activity to display</p>
-                                    <p className="text-sm">Your ticket purchases and trips will appear here</p>
+                                    {error2 ? (
+                                        <div className="text-destructive text-sm">{error2}</div>
+                                    ) : data2?.tickets?.length === 0 ? (
+                                        <div className="text-sm">No recent activity</div>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left">
+                                                <thead>
+                                                    <tr>
+                                                        <th className="font-normal">Date</th>
+                                                        <th className="font-normal">From</th>
+                                                        <th className="font-normal">To</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {data2?.tickets?.map((ticket: Ticket) => (
+                                                        <tr key={ticket.id}>
+                                                            <td>{new Date(ticket.created_at).toLocaleDateString()}</td>
+                                                            <td>{ticket.start_stop_name}</td>
+                                                            <td>{ticket.end_stop_name}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </CardContent>
