@@ -91,7 +91,7 @@ export default async function Dashboard() {
             <div className="container mx-auto px-4 py-8 space-y-8">
                 <div className="flex flex-row justify-between">
                     <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <LogoutUser/>
+                    <LogoutUser />
                 </div>
 
                 {/* Search Section */}

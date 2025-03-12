@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imdinnesh/mo_bus/database"
 	"github.com/imdinnesh/mo_bus/middleware"
 	"gorm.io/gorm"
 )
@@ -41,23 +42,34 @@ func DashboardRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		// get the the tickets booked by the user which are not generated
 
 		var tickets []struct {
-			Id            uint   `json:"id"`
-			CreatedAt     string `json:"created_at"`
-			BookingID     uint   `json:"booking_id"`
-			StartStopName string `json:"start_stop_name"`
-			EndStopName   string `json:"end_stop_name"`
+			Id        uint   `json:"id"`
+			CreatedAt string `json:"created_at"`
+			BookingID uint   `json:"booking_id"`
 		}
 
-		db.Table("tickets").
-			Select("tickets.id, tickets.created_at, tickets.booking_id, start_stops.stop_name as start_stop_name, end_stops.stop_name as end_stop_name").
-			Joins("JOIN bookings ON tickets.booking_id = bookings.id").
-			Joins("JOIN stops as start_stops ON bookings.start_stop_id = start_stops.id").
-			Joins("JOIN stops as end_stops ON bookings.end_stop_id = end_stops.id").
-			Where("tickets.user_id = ? AND tickets.generated_status = ?", userId, false).
-			Find(&tickets)
+		db.Model(&database.Ticket{}).
+			Select("created_at, booking_id", "id").Where("user_id = ? AND generated_status = ?", userId, false).Find(&tickets)
+
+		bookingIds := make([]uint, len(tickets))
+
+		for i, ticket := range tickets {
+			bookingIds[i] = ticket.BookingID
+		}
+
+		var bookings []struct {
+			StartStopID uint    `json:"start_stop_id"`
+			EndStopID   uint    `json:"end_stop_id"`
+			Amount      float64 `json:"amount"`
+		}
+
+		db.Model(&database.Booking{}).
+			Select("start_stop_id, end_stop_id, amount").
+			Where("id IN ?", bookingIds).
+			Find(&bookings)
 
 		ctx.JSON(200, gin.H{
-			"tickets": tickets,
+			"tickets":  tickets,
+			"bookings": bookings,
 		})
 
 	})
