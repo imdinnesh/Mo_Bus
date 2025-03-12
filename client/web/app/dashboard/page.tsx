@@ -1,11 +1,19 @@
-import axios from "axios"
-import { cookies } from "next/headers"
-import { SearchBar } from "@/components/search-bar"
-import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Wallet, CreditCard, History, ArrowRight } from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
+import axios from "axios";
+import { cookies } from "next/headers";
+import { SearchBar } from "@/components/search-bar";
+import Link from "next/link";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Wallet, CreditCard, History, ArrowRight } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LogoutUser } from "@/components/logout-user";
 
 type Ticket = {
     id: number;
@@ -19,19 +27,18 @@ type TicketResponse = {
     tickets: Ticket[];
 };
 
-
 export default async function Dashboard() {
     // Get the token from cookies
-    const cookieStore = await cookies()
-    const token = cookieStore.get("token")
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token");
 
-    let data = null
-    let error = null
-    let loading = true
+    let data = null;
+    let error = null;
+    let loading = true;
 
-    let loading2 = true
-    let error2 = null
-    let data2 = null
+    let loading2 = true;
+    let error2 = null;
+    let data2 = null;
 
     try {
         const request = await axios.get("http://localhost:8080/user/profile", {
@@ -40,20 +47,20 @@ export default async function Dashboard() {
                 "Content-Type": "application/json",
                 ...(token && { Authorization: `Bearer ${token.value}` }),
             },
-        })
+        });
 
         if (request.statusText === "OK") {
-            data = request.data
-            loading = false
+            data = request.data;
+            loading = false;
         }
     } catch (err) {
-        loading = false
+        loading = false;
         if (axios.isAxiosError(err) && err.response) {
-            error = err.response.data.error || "Failed to load profile"
+            error = err.response.data.error || "Failed to load profile";
         } else {
-            error = "An error occurred while fetching user profile"
+            error = "An error occurred while fetching user profile";
         }
-        console.log(error)
+        console.log(error);
     }
 
     try {
@@ -63,30 +70,29 @@ export default async function Dashboard() {
                 "Content-Type": "application/json",
                 ...(token && { Authorization: `Bearer ${token.value}` }),
             },
-        })
+        });
 
         if (request.statusText === "OK") {
-            data2 = request.data as TicketResponse
-            loading2 = false
+            data2 = request.data as TicketResponse;
+            loading2 = false;
         }
     } catch (err) {
-        loading2 = false
+        loading2 = false;
         if (axios.isAxiosError(err) && err.response) {
-            error2 = err.response.data.error || "Failed to load tickets"
+            error2 = err.response.data.error || "Failed to load tickets";
         } else {
-            error2 = "An error occurred while fetching user tickets"
+            error2 = "An error occurred while fetching user tickets";
         }
-        console.log(error2)
+        console.log(error2);
     }
-
-
-
-
 
     return (
         <div className="min-h-svh w-full bg-gradient-to-b from-background to-background/80">
             <div className="container mx-auto px-4 py-8 space-y-8">
-                <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                <div className="flex flex-row justify-between">
+                    <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                    <LogoutUser/>
+                </div>
 
                 {/* Search Section */}
                 <section className="bg-card rounded-xl p-6 shadow-sm border">
@@ -108,9 +114,14 @@ export default async function Dashboard() {
                             {loading ? (
                                 <Skeleton className="h-12 w-32" />
                             ) : error ? (
-                                <div className="text-destructive text-sm">Unable to load balance</div>
+                                <div className="text-destructive text-sm">
+                                    Unable to load balance
+                                </div>
                             ) : (
-                                <div className="text-4xl font-bold tracking-tight"> ₹{data?.balance?.toFixed(2) || "0.00"}</div>
+                                <div className="text-4xl font-bold tracking-tight">
+                                    {" "}
+                                    ₹{data?.balance?.toFixed(2) || "0.00"}
+                                </div>
                             )}
                         </CardContent>
                         <CardFooter>
@@ -131,7 +142,9 @@ export default async function Dashboard() {
                                 <History className="h-5 w-5 text-primary" />
                                 Recent Activity
                             </CardTitle>
-                            <CardDescription>Your recent ticket purchases and trips</CardDescription>
+                            <CardDescription>
+                                Your recent ticket purchases and trips
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {loading2 ? (
@@ -145,7 +158,7 @@ export default async function Dashboard() {
                                     {error2 ? (
                                         <div className="text-destructive text-sm">{error2}</div>
                                     ) : data2?.tickets?.length === 0 ? (
-                                        <div className="text-sm">No recent activity</div>
+                                        <div className="text-sm">No New Purchase</div>
                                     ) : (
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left">
@@ -159,7 +172,11 @@ export default async function Dashboard() {
                                                 <tbody>
                                                     {data2?.tickets?.map((ticket: Ticket) => (
                                                         <tr key={ticket.id}>
-                                                            <td>{new Date(ticket.created_at).toLocaleDateString()}</td>
+                                                            <td>
+                                                                {new Date(
+                                                                    ticket.created_at
+                                                                ).toLocaleDateString()}
+                                                            </td>
                                                             <td>{ticket.start_stop_name}</td>
                                                             <td>{ticket.end_stop_name}</td>
                                                         </tr>
@@ -206,7 +223,9 @@ export default async function Dashboard() {
                                     </svg>
                                 </div>
                                 <h3 className="font-medium">Book Tickets</h3>
-                                <p className="text-sm text-muted-foreground mt-1">Purchase tickets for your journey</p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    Purchase tickets for your journey
+                                </p>
                             </CardContent>
                         </Card>
                     </Link>
@@ -232,7 +251,9 @@ export default async function Dashboard() {
                                     </svg>
                                 </div>
                                 <h3 className="font-medium">Schedules</h3>
-                                <p className="text-sm text-muted-foreground mt-1">View route timetables and schedules</p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    View route timetables and schedules
+                                </p>
                             </CardContent>
                         </Card>
                     </Link>
@@ -258,13 +279,14 @@ export default async function Dashboard() {
                                     </svg>
                                 </div>
                                 <h3 className="font-medium">Profile</h3>
-                                <p className="text-sm text-muted-foreground mt-1">Manage your account settings</p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                    Manage your account settings
+                                </p>
                             </CardContent>
                         </Card>
                     </Link>
                 </section>
             </div>
         </div>
-    )
+    );
 }
-
