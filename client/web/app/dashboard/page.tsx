@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, CreditCard, History, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogoutUser } from "@/components/logout-user";
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 interface Ticket {
     ticket_id: number;
@@ -153,37 +154,40 @@ export default async function Dashboard() {
                                     <Skeleton className="h-12 w-full" />
                                 </div>
                             ) : (
-                                <div className="text-muted-foreground text-center py-6">
+                                <div className="text-muted-foreground">
                                     {error2 ? (
                                         <div className="text-destructive text-sm">{error2}</div>
                                     ) : data2?.tickets?.length === 0 ? (
-                                        <div className="text-sm">No New Purchase</div>
+                                        <div className="text-sm text-center py-6">No New Purchase</div>
                                     ) : (
-                                        <div className="overflow-x-auto">
+                                        <ScrollArea className="h-[200px] rounded-md border">
                                             <table className="w-full text-left">
-                                                <thead>
+                                                <thead className="sticky top-0 bg-card">
                                                     <tr>
-                                                        <th className="font-normal">Date</th>
-                                                        <th className="font-normal">From</th>
-                                                        <th className="font-normal">To</th>
+                                                        <th className="px-6 py-3 font-medium text-gray-600">Date</th>
+                                                        <th className="px-6 py-3 font-medium text-gray-600">From</th>
+                                                        <th className="px-6 py-3 font-medium text-gray-600">To</th>
+                                                        <th className="px-6 py-3 font-medium text-gray-600">Action</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody>
+                                                <tbody className="divide-y divide-gray-200">
                                                     {data2?.tickets?.map((ticket: Ticket) => (
-                                                        <tr key={ticket.ticket_id}>
-                                                            <td className="py-2">{new Date().toLocaleDateString()}</td>
-                                                            <td className="py-2">{ticket.start_stop}</td>
-                                                            <td className="py-2">{ticket.end_stop}</td>
-                                                            <Link href={`/generate?id=${ticket.ticket_id}`}>
-                                                                <td className="py-2 text-primary cursor-pointer">
-                                                                    Generate Ticket
-                                                                </td>
-                                                            </Link>
+                                                        <tr key={ticket.ticket_id} className="hover:bg-gray-50 transition-colors">
+                                                            <td className="px-6 py-4">{new Date().toLocaleDateString()}</td>
+                                                            <td className="px-6 py-4">{ticket.start_stop}</td>
+                                                            <td className="px-6 py-4">{ticket.end_stop}</td>
+                                                            <td className="px-6 py-4">
+                                                                <Link href={`/generate?id=${ticket.ticket_id}`}>
+                                                                    <span className="text-primary hover:text-primary-dark cursor-pointer font-medium">
+                                                                        Generate Ticket
+                                                                    </span>
+                                                                </Link>
+                                                            </td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
                                             </table>
-                                        </div>
+                                        </ScrollArea>
                                     )}
                                 </div>
                             )}
