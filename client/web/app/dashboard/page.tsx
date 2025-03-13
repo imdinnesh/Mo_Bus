@@ -15,17 +15,15 @@ import { Wallet, CreditCard, History, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LogoutUser } from "@/components/logout-user";
 
-type Ticket = {
-    id: number;
-    created_at: string; // Can be converted to Date if needed
-    booking_id: number;
-    start_stop_name: string;
-    end_stop_name: string;
-};
+interface Ticket {
+    ticket_id: number;
+    start_stop: string;
+    end_stop: string;
+}
 
-type TicketResponse = {
+interface TicketsResponse {
     tickets: Ticket[];
-};
+}
 
 export default async function Dashboard() {
     // Get the token from cookies
@@ -73,9 +71,9 @@ export default async function Dashboard() {
         });
 
         if (request.statusText === "OK") {
-            data2 = request.data as TicketResponse;
+            data2 = request.data as TicketsResponse;
             loading2 = false;
-            
+
         }
     } catch (err) {
         loading2 = false;
@@ -172,14 +170,15 @@ export default async function Dashboard() {
                                                 </thead>
                                                 <tbody>
                                                     {data2?.tickets?.map((ticket: Ticket) => (
-                                                        <tr key={ticket.id}>
-                                                            <td>
-                                                                {new Date(
-                                                                    ticket.created_at
-                                                                ).toLocaleDateString()}
-                                                            </td>
-                                                            <td>{ticket.start_stop_name}</td>
-                                                            <td>{ticket.end_stop_name}</td>
+                                                        <tr key={ticket.ticket_id}>
+                                                            <td className="py-2">{new Date().toLocaleDateString()}</td>
+                                                            <td className="py-2">{ticket.start_stop}</td>
+                                                            <td className="py-2">{ticket.end_stop}</td>
+                                                            <Link href={`/generate?id=${ticket.ticket_id}`}>
+                                                                <td className="py-2 text-primary cursor-pointer">
+                                                                    Generate Ticket
+                                                                </td>
+                                                            </Link>
                                                         </tr>
                                                     ))}
                                                 </tbody>
