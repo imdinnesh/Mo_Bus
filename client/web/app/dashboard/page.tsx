@@ -75,6 +75,7 @@ export default async function Dashboard() {
         if (request.statusText === "OK") {
             data2 = request.data as TicketResponse;
             loading2 = false;
+            
         }
     } catch (err) {
         loading2 = false;

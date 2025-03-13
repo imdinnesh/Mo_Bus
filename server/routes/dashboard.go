@@ -38,40 +38,33 @@ func DashboardRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 	dashboardRouter.GET("/tickets", func(ctx *gin.Context) {
 		userId := ctx.GetUint("userId")
-
-		// get the the tickets booked by the user which are not generated
-
-		var tickets []struct {
-			Id        uint   `json:"id"`
-			CreatedAt string `json:"created_at"`
-			BookingID uint   `json:"booking_id"`
+	
+		// Define a struct for the simplified response
+		type TicketResponse struct {
+			TicketID   uint   `json:"ticket_id"`
+			StartStop  string `json:"start_stop"`
+			EndStop    string `json:"end_stop"`
 		}
-
-		db.Model(&database.Ticket{}).
-			Select("created_at, booking_id", "id").Where("user_id = ? AND generated_status = ?", userId, false).Find(&tickets)
-
-		bookingIds := make([]uint, len(tickets))
-
-		for i, ticket := range tickets {
-			bookingIds[i] = ticket.BookingID
+	
+		// Query the database
+		var tickets []database.Ticket
+		db.Preload("Booking.StartStop").Preload("Booking.EndStop").
+			Where("user_id = ? AND generated_status = ?", userId, false).Find(&tickets)
+	
+		// Map the results to the simplified response struct
+		var response []TicketResponse
+		for _, ticket := range tickets {
+			response = append(response, TicketResponse{
+				TicketID:   ticket.ID,
+				StartStop:  ticket.Booking.StartStop.StopName,
+				EndStop:    ticket.Booking.EndStop.StopName,
+			})
 		}
-
-		var bookings []struct {
-			StartStopID uint    `json:"start_stop_id"`
-			EndStopID   uint    `json:"end_stop_id"`
-			Amount      float64 `json:"amount"`
-		}
-
-		db.Model(&database.Booking{}).
-			Select("start_stop_id, end_stop_id, amount").
-			Where("id IN ?", bookingIds).
-			Find(&bookings)
-
+	
+		// Return the simplified response
 		ctx.JSON(200, gin.H{
-			"tickets":  tickets,
-			"bookings": bookings,
+			"tickets": response,
 		})
-
 	})
 
 }
