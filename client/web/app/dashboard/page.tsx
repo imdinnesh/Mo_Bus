@@ -177,7 +177,7 @@ export default async function Dashboard() {
                                                             <td className="px-6 py-4">{ticket.start_stop}</td>
                                                             <td className="px-6 py-4">{ticket.end_stop}</td>
                                                             <td className="px-6 py-4">
-                                                                <Link href={`/generate?id=${ticket.ticket_id}`}>
+                                                                <Link href={`/generate?id=${ticket.ticket_id}&from=${ticket.start_stop}&to=${ticket.end_stop}`}>
                                                                     <span className="text-primary hover:text-primary-dark cursor-pointer font-medium">
                                                                         Generate Ticket
                                                                     </span>
