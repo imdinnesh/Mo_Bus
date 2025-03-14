@@ -135,6 +135,16 @@ export default async function Dashboard() {
                         </CardFooter>
                     </Card>
 
+                    {/* QR Code Card */}
+                    {/* Add a button to show all the tickets that are generated and not expired yet mark this section as importtant to be displayed on the dashboard */}
+                    {/* Navigae the user to a new page where all the tickets are displayed */}
+
+                    {/* Just add a button of high importance */}
+
+                    <Link href="/qrcodes">
+                    Your Valid Tickets
+                    </Link>     
+                        
                     {/* Recent Activity Card */}
                     <Card className="md:col-span-2 shadow-sm">
                         <CardHeader className="pb-2">
