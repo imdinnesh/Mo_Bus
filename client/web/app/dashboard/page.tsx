@@ -81,7 +81,7 @@ export default async function Dashboard() {
 
   return (
     <div className="min-h-svh w-full bg-gradient-to-b from-background to-background/80">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="container mx-auto px-4 py-8 space-y-8 max-w-7xl">
         <div className="flex flex-row justify-between items-center">
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <LogoutUser />
@@ -94,9 +94,9 @@ export default async function Dashboard() {
         </section>
 
         {/* Main Cards Section */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Balance Card */}
-          <Card className="md:col-span-1 shadow-sm hover:shadow-md transition-shadow">
+          <Card className="shadow-sm hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-primary" />
@@ -125,7 +125,7 @@ export default async function Dashboard() {
           </Card>
 
           {/* QR Code Card - Enhanced */}
-          <Card className="md:col-span-1 shadow-sm hover:shadow-md transition-shadow border-primary/20">
+          <Card className="shadow-sm hover:shadow-md transition-shadow border-primary/20">
             <CardHeader className="pb-2 bg-primary/5 rounded-t-lg">
               <CardTitle className="flex items-center gap-2">
                 <Ticket className="h-5 w-5 text-primary" />
@@ -157,13 +157,16 @@ export default async function Dashboard() {
               </Link>
             </CardFooter>
           </Card>
+        </section>
 
-          {/* Recent Activity Card */}
-          <Card className="md:col-span-1 shadow-sm">
+        {/* Recent Activity Section */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4">Recent Activity</h2>
+          <Card className="shadow-sm">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2">
                 <History className="h-5 w-5 text-primary" />
-                Recent Activity
+                Ticket History
               </CardTitle>
               <CardDescription>Your recent ticket purchases and trips</CardDescription>
             </CardHeader>
@@ -181,35 +184,37 @@ export default async function Dashboard() {
                   ) : data2?.tickets?.length === 0 ? (
                     <div className="text-sm text-center py-6">No New Purchase</div>
                   ) : (
-                    <ScrollArea className="h-[200px] rounded-md border">
-                      <table className="w-full text-left">
-                        <thead className="sticky top-0 bg-card">
-                          <tr>
-                            <th className="px-6 py-3 font-medium text-gray-600">Date</th>
-                            <th className="px-6 py-3 font-medium text-gray-600">From</th>
-                            <th className="px-6 py-3 font-medium text-gray-600">To</th>
-                            <th className="px-6 py-3 font-medium text-gray-600">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
-                          {data2?.tickets?.map((ticket: TicketType) => (
-                            <tr key={ticket.ticket_id} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4">{new Date().toLocaleDateString()}</td>
-                              <td className="px-6 py-4">{ticket.start_stop}</td>
-                              <td className="px-6 py-4">{ticket.end_stop}</td>
-                              <td className="px-6 py-4">
-                                <Link
-                                  href={`/generate?id=${ticket.ticket_id}&from=${ticket.start_stop}&to=${ticket.end_stop}`}
-                                >
-                                  <span className="text-primary hover:text-primary-dark cursor-pointer font-medium">
-                                    Generate Ticket
-                                  </span>
-                                </Link>
-                              </td>
+                    <ScrollArea className="h-[300px] w-full rounded-md border">
+                      <div className="min-w-[700px]">
+                        <table className="w-full text-left">
+                          <thead className="sticky top-0 bg-card z-10">
+                            <tr>
+                              <th className="px-6 py-3 font-medium text-gray-600">Date</th>
+                              <th className="px-6 py-3 font-medium text-gray-600">From</th>
+                              <th className="px-6 py-3 font-medium text-gray-600">To</th>
+                              <th className="px-6 py-3 font-medium text-gray-600">Action</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {data2?.tickets?.map((ticket: TicketType) => (
+                              <tr key={ticket.ticket_id} className="hover:bg-gray-50 transition-colors">
+                                <td className="px-6 py-4 whitespace-nowrap">{new Date().toLocaleDateString()}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{ticket.start_stop}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">{ticket.end_stop}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <Link
+                                    href={`/generate?id=${ticket.ticket_id}&from=${ticket.start_stop}&to=${ticket.end_stop}`}
+                                  >
+                                    <span className="text-primary hover:text-primary-dark cursor-pointer font-medium">
+                                      Generate Ticket
+                                    </span>
+                                  </Link>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </ScrollArea>
                   )}
                 </div>
