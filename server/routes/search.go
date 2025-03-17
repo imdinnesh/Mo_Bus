@@ -56,7 +56,7 @@ func SearchRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			}
 
 			// use gorm to get the routes that connect the two stops
-			db.Select("route_number, route_name").Table("routes").Joins("JOIN route_stops AS rs1 ON rs1.route_id = routes.id").Joins("JOIN route_stops AS rs2 ON rs2.route_id = routes.id").Where("rs1.stop_id = ? AND rs2.stop_id = ?", request.SourceStopID, request.DestinationStopID).Scan(&routes)
+			db.Select("route_number, route_name","id").Table("routes").Joins("JOIN route_stops AS rs1 ON rs1.route_id = routes.id").Joins("JOIN route_stops AS rs2 ON rs2.route_id = routes.id").Where("rs1.stop_id = ? AND rs2.stop_id = ?", request.SourceStopID, request.DestinationStopID).Scan(&routes)
 			if routes == nil {
 				ctx.JSON(400, gin.H{"error": "No routes found"})
 				return
