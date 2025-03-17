@@ -124,27 +124,32 @@ func SearchRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		// also search for stop number in route table
 
-		var routeStops []struct{
+		var routeStops []struct {
+			RouteId    uint   `json:"route_id"`    // Changed from "id" to "route_id" for clarity
 			RouteNumber string `json:"route_number"`
-			RouteName string `json:"route_name"`
+			RouteName  string `json:"route_name"`
 		}
-
-		db.Select("route_name,route_number").Table("routes").Where("LOWER(route_number) LIKE ?", "%"+request.Query+"%").Scan(&routeStops)
-
-		// if routeStops == nil {
-		// 	ctx.JSON(400, gin.H{"error": "No stops found"})
-		// 	return
-		// }
-
-		if(stops==nil && routeStops==nil){
-			ctx.JSON(400,gin.H{"error":"No stops found"})
+		
+		// Update the query to include the ID field
+		result := db.Select("routes.id as route_id, routes.id, routes.route_name, routes.route_number").
+			Table("routes").
+			Where("LOWER(route_number) LIKE ?", "%"+request.Query+"%").
+			Scan(&routeStops)
+		
+		if result.Error != nil {
+			ctx.JSON(500, gin.H{"error": "Database error", "details": result.Error.Error()})
 			return
 		}
-
+		
+		if len(stops) == 0 && len(routeStops) == 0 {
+			ctx.JSON(400, gin.H{"error": "No stops found"})
+			return
+		}
+		
 		ctx.JSON(200, gin.H{
-			"message": "Stops accessed",
-			"stops": stops,
-			"route_stops": routeStops,
+			"message":      "Stops accessed",
+			"stops":        stops,
+			"route_stops":  routeStops,
 		})
 
 
