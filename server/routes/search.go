@@ -39,7 +39,7 @@ func SearchRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			}
 
 			// use gorm to get the stops in the route
-			db.Select("stop_id, stop_name").Table("route_stops").Joins("JOIN stops ON stops.id = route_stops.stop_id").Joins("JOIN routes ON routes.id = route_stops.route_id").Where("route_number = ?", request.RouteNumber).Scan(&routeStops)
+			db.Select("stop_id, stop_name").Table("route_stops").Joins("JOIN stops ON stops.id = route_stops.stop_id").Joins("JOIN routes ON routes.id = route_stops.route_id").Where("routes.id = ?", request.RouteNumber).Scan(&routeStops)
 			
 			ctx.JSON(200, gin.H{
 				"message": "Route stops accessed",

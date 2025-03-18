@@ -190,7 +190,7 @@ export function SearchBar() {
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {result.route_stops.map((route) => (
-                                    <Link href={`/bookings/byroute/${route.route_number}`} key={route.route_id}>
+                                    <Link href={`/bookings/byroute/${route.route_id}`} key={route.route_id}>
                                         <Card className="hover:bg-accent/50 transition-colors hover:shadow-sm cursor-pointer h-full">
                                             <CardContent className="p-4 flex items-center">
                                                 <div className="h-12 w-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold mr-4 text-lg">
