@@ -74,6 +74,49 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		
 	})
 
+	userRouter.PATCH("/reset-password",middleware.AuthMiddleware(),func(ctx *gin.Context) {
+		userid:=ctx.GetUint("userId")
+		type requestBody struct{
+			OldPassword string `json:"old_password"`
+			NewPassword string `json:"new_password"`
+		}
+
+		var body requestBody
+		ctx.BindJSON(&body)
+
+		if(body.OldPassword==""|| body.NewPassword==""){
+			ctx.JSON(http.StatusBadRequest,gin.H{
+				"message":"Old password or new password is empty",
+			})
+			return
+		}
+		if(body.OldPassword==body.NewPassword){
+			ctx.JSON(http.StatusBadRequest,gin.H{
+				"message":"Old password and new password are same",
+			})
+			return
+		}
+
+		user:=database.User{}
+
+		db.Where("id=?",userid).First(&user)
+
+		if(user.Password!=body.OldPassword){
+			ctx.JSON(http.StatusBadRequest,gin.H{
+				"message":"Old password is incorrect",
+			})
+			return
+		}
+
+		db.Model(&user).Update("password",body.NewPassword)
+		ctx.JSON(http.StatusOK,gin.H{
+			"message":"Password updated successfully",})
+
+		
+	})
+
+
+
 	userRouter.GET("/profile",middleware.AuthMiddleware(),func(ctx *gin.Context) {
 		userId:=ctx.GetUint("userId")
 		user:=database.User{}
