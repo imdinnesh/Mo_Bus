@@ -9,6 +9,7 @@ import (
 
 var secretKey = []byte("secret-key")
 
+// Create JWT token
 func CreateToken(email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
@@ -24,7 +25,12 @@ func CreateToken(email string) (string, error) {
 	return tokenString, nil
 }
 
+// Verify JWT token and check if it is blacklisted
 func VerifyToken(tokenString string) (string, error) {
+	if IsTokenBlacklisted(tokenString) {
+		return "", fmt.Errorf("token is blacklisted")
+	}
+
 	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
@@ -48,4 +54,26 @@ func VerifyToken(tokenString string) (string, error) {
 	}
 
 	return email, nil
+}
+// Function to get the expiry time of a token
+func GetExpiryTime(tokenString string) (time.Time, error) {
+	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return time.Time{}, err
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return time.Time{}, fmt.Errorf("invalid token claims")
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok {
+		return time.Time{}, fmt.Errorf("invalid expiry time format")
+	}
+
+	return time.Unix(int64(exp), 0), nil
 }

@@ -13,7 +13,7 @@ services:
       - "5432:5432"
 
     networks:
-      - postgres_network
+      - app_network
 
   db2:
     image: postgres:latest
@@ -29,14 +29,28 @@ services:
       - "5432:5432"
 
     networks:
-      - postgres_network
+      - app_network
+
+  redis:
+    image: redis:latest
+    container_name: redis_service
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: ["redis-server", "--appendonly", "yes"]
+    networks:
+      - app_network
 
 volumes:
   postgres_data:
     driver: local
   postgres_data_2:
     driver: local
+  redis_data:
+    driver: local
 
 networks:
-  postgres_network:
+  app_network:
     driver: bridge

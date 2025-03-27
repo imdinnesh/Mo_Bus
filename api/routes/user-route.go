@@ -1,10 +1,12 @@
 package routes
 
 import (
+	"fmt"
 	"github/imdinnes/mobusapi/database"
 	"github/imdinnes/mobusapi/middleware"
 	"github/imdinnes/mobusapi/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -114,6 +116,35 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		
 	})
+
+	userRouter.POST("/logout", middleware.AuthMiddleware(), func(ctx *gin.Context) {
+		// Get token from Authorization header
+		token:=ctx.GetHeader("Authorization")
+		if token == "" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"message": "Token is required",
+			})
+			return
+		}
+
+		// Get the expiry time of the token
+		expiryTime,err:=utils.GetExpiryTime(token)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get expiry time"})
+			return
+		}
+		// Calculate the time until expiry
+		timeUntilExpiry := time.Until(expiryTime)
+		fmt.Println(timeUntilExpiry)
+		err = utils.BlacklistToken(token, timeUntilExpiry)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to blacklist token"})
+			return
+		}
+	
+		ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+	})
+	
 
 
 
