@@ -2,6 +2,8 @@ package routes
 
 import (
 	"github/imdinnes/mobusapi/database"
+	"github/imdinnes/mobusapi/middleware"
+	"github/imdinnes/mobusapi/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -57,17 +59,32 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			})
 			return
 		}
+		tokenString, err := utils.CreateToken(result.Email)
+		if err != nil {
+			ctx.JSON(500, gin.H{
+				"message": "Error creating token",
+			})
+			return
+		}
+		
+		ctx.JSON(200, gin.H{
+			"message": "User signed in",
+			"token": tokenString,
+		})
+		
+	})
 
+	userRouter.GET("/profile",middleware.AuthMiddleware(),func(ctx *gin.Context) {
+		userId:=ctx.GetUint("userId")
+		user:=database.User{}
+		db.Where("id = ?", userId).First(&user)
 		ctx.JSON(http.StatusOK,gin.H{
-			"message":"User logged in successfully",
+			"user":user.Email,
+			"balance":user.Balance,
 		})
 
-
-
-		
-
-
 	})
+
 
 
 }
