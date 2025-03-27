@@ -15,10 +15,26 @@ services:
     networks:
       - postgres_network
 
+  db2:
+    image: postgres:latest
+    container_name: postgres_db_2
+    restart: always
+    environment:
+      POSTGRES_DB: mobus_database
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data_2:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
+    networks:
+      - postgres_network
 
 volumes:
   postgres_data:
+    driver: local
+  postgres_data_2:
     driver: local
 
 networks:
