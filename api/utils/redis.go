@@ -11,7 +11,7 @@ var ctx = context.Background()
 
 // Initialize Redis client
 var RedisClient = redis.NewClient(&redis.Options{
-	Addr: "localhost:6379", // Change if Redis is running elsewhere
+	Addr: "localhost:6379",
 })
 
 // Blacklist a JWT token

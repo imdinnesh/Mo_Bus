@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github/imdinnes/mobusapi/database"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -71,29 +72,95 @@ func CreateRefreshToken(email string)(string,error){
 }
 
 // Verify Refresh Token and issue a new access token
-func RefreshAccessToken(refreshToken string) (string, string, error) {
+// func RefreshAccessToken(refreshToken string,dbRefreshToken string) (string, string, error) {
+// 	token, err := jwt.ParseWithClaims(refreshToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+// 		return refreshSecretKey, nil
+// 	})
+
+// 	if err != nil || !token.Valid {
+// 		return "", "", fmt.Errorf("invalid refresh token")
+// 	}
+
+// 	claims, ok := token.Claims.(jwt.MapClaims)
+// 	if !ok {
+// 		return "", "", fmt.Errorf("invalid token claims")
+// 	}
+
+// 	email, ok := claims["email"].(string)
+// 	if !ok {
+// 		return "", "", fmt.Errorf("invalid email")
+// 	}
+
+// 	// Check if the refresh token is present in the database
+
+
+// 	// Generate new tokens
+// 	newAccessToken, _ := CreateToken(email)
+// 	newRefreshToken, _ := CreateRefreshToken(email)
+
+// 	return newAccessToken, newRefreshToken, nil
+// }
+
+// VerifyRefreshToken checks the validity of a refresh token
+func RefreshAccessToken(refreshToken string) (string,string,error) {
 	token, err := jwt.ParseWithClaims(refreshToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return refreshSecretKey, nil
 	})
 
 	if err != nil || !token.Valid {
-		return "", "", fmt.Errorf("invalid refresh token")
+		return "","", fmt.Errorf("invalid refresh token")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", "", fmt.Errorf("invalid token claims")
+		return "", "",fmt.Errorf("invalid token claims")
 	}
 
 	email, ok := claims["email"].(string)
 	if !ok {
-		return "", "", fmt.Errorf("invalid email")
+		return "","", fmt.Errorf("invalid email")
+	}
+
+	// Check if the refresh token is present in the database
+	db:=database.SetupDatabase();
+
+	user:=database.User{}
+
+	db.Where("email=?",email).First(&user)
+
+	refreshTokenEntry:=database.RefreshToken{}
+	db.Where("user_id=?",user.ID).First(&refreshTokenEntry)
+
+	if refreshTokenEntry.ID==0{
+		return "","", fmt.Errorf("refresh token not found in database.Please login again")
+	}
+
+	// Decrypt the refresh token
+	decryptedRefreshToken,err:=DecryptToken(refreshTokenEntry.EncryptedRefreshToken)
+	if err!=nil{
+		return "","", fmt.Errorf("error decrypting refresh token")
+	}
+
+	if decryptedRefreshToken!=refreshToken{
+		return "","", fmt.Errorf("refresh token is not valid")
 	}
 
 	// Generate new tokens
-	newAccessToken, _ := CreateToken(email)
-	newRefreshToken, _ := CreateRefreshToken(email)
-
+	newAccessToken, err := CreateToken(email)
+	if err != nil {
+		return "","", fmt.Errorf("error creating new access token")
+	}
+	newRefreshToken, err := CreateRefreshToken(email)
+	if err != nil {
+		return "","", fmt.Errorf("error creating new refresh token")
+	}
+	// Update the refresh token in the database
+	encryptedRefreshToken, err := EncryptToken(newRefreshToken)
+	if err != nil {
+		return "","", fmt.Errorf("error encrypting new refresh token")
+	}
+	refreshTokenEntry.EncryptedRefreshToken = encryptedRefreshToken
+	db.Save(&refreshTokenEntry)
 	return newAccessToken, newRefreshToken, nil
 }
 

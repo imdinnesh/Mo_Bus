@@ -14,7 +14,7 @@ func SetupDatabase() *gorm.DB{
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&User{}, &Stop{}, &Route{}, &RouteStop{}, &RefreshToken{})
 	return db
 
 }
@@ -54,4 +54,11 @@ type RouteStop struct {
 }
 
 
+// RefreshToken model
+type RefreshToken struct {
+	ID           uint   `gorm:"primaryKey"`
+	UserID       uint   `gorm:"index"`
+	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	EncryptedRefreshToken string
+}
 

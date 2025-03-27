@@ -7,7 +7,6 @@ import (
 	"github/imdinnes/mobusapi/utils"
 	"net/http"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -61,19 +60,81 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			})
 			return
 		}
-		tokenString, err := utils.CreateToken(result.Email)
+		accessToken, err := utils.CreateToken(result.Email)
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"message": "Error creating token",
 			})
 			return
 		}
+
+		refreshToken,err:=utils.CreateRefreshToken(result.Email)
+		if err != nil {
+			ctx.JSON(500, gin.H{
+				"message": "Error creating refresh token",
+			})
+			return
+		}
+		// Set the refresh token in the database
+		// Encrypt the refresh token
+		encryptedRefreshToken, err := utils.EncryptToken(refreshToken)
+		if err != nil {
+			ctx.JSON(500, gin.H{
+				"message": "Error encrypting refresh token",
+			})
+			return
+		}
+		// Create a new refresh token entry
+		refreshTokenEntry:=database.RefreshToken{
+			UserID: result.ID,
+			EncryptedRefreshToken:encryptedRefreshToken,
+		}
+
+		// Save the refresh token entry to the database
+		db.Create(&refreshTokenEntry)
 		
 		ctx.JSON(200, gin.H{
 			"message": "User signed in",
-			"token": tokenString,
+			"accessToken": accessToken,
+			"refreshToken": refreshToken,
 		})
 		
+	})
+
+	// Refresh Token
+
+	userRouter.POST("/refresh-token",func(ctx *gin.Context) {
+		// Get the refresh token from the request
+		type requestBody struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+
+		var body requestBody
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": "Invalid request",
+			})
+			return
+		}
+		if body.RefreshToken == "" {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": "Refresh token is required",
+			})
+			return
+		}
+
+		newAccessToken,newRefreshToken,err:=utils.RefreshAccessToken(body.RefreshToken)
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"message": "Invalid refresh token",
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "Token refreshed successfully",
+			"accessToken": newAccessToken,
+			"refreshToken": newRefreshToken,
+		})
 	})
 
 	userRouter.PATCH("/reset-password",middleware.AuthMiddleware(),func(ctx *gin.Context) {
@@ -140,6 +201,16 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to blacklist token"})
 			return
+		}
+
+		// Delete the refresh token from the database
+
+		userId := ctx.GetUint("userId")
+
+		refreshTokenEntry := database.RefreshToken{}
+		db.Where("user_id = ?", userId).First(&refreshTokenEntry)
+		if refreshTokenEntry.ID != 0 {
+			db.Delete(&refreshTokenEntry)
 		}
 	
 		ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
