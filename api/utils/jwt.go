@@ -8,13 +8,14 @@ import (
 )
 
 var secretKey = []byte("secret-key")
+var refreshSecretKey = []byte("refresh-secret-key")
 
 // Create JWT token
 func CreateToken(email string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"email": email,
-			"exp":   time.Now().Add(time.Hour * 24).Unix(),
+			"exp":   time.Now().Add(time.Minute * 30).Unix(), // 30 min expiry
 		})
 
 	tokenString, err := token.SignedString(secretKey)
@@ -52,9 +53,50 @@ func VerifyToken(tokenString string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("invalid email")
 	}
-
 	return email, nil
 }
+
+// Function to create a refresh token
+func CreateRefreshToken(email string)(string,error){
+	token:=jwt.NewWithClaims(jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"email": email,
+			"exp":   time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 days expiry
+		})
+	tokenString, err := token.SignedString(refreshSecretKey)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
+
+// Verify Refresh Token and issue a new access token
+func RefreshAccessToken(refreshToken string) (string, string, error) {
+	token, err := jwt.ParseWithClaims(refreshToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return refreshSecretKey, nil
+	})
+
+	if err != nil || !token.Valid {
+		return "", "", fmt.Errorf("invalid refresh token")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return "", "", fmt.Errorf("invalid token claims")
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		return "", "", fmt.Errorf("invalid email")
+	}
+
+	// Generate new tokens
+	newAccessToken, _ := CreateToken(email)
+	newRefreshToken, _ := CreateRefreshToken(email)
+
+	return newAccessToken, newRefreshToken, nil
+}
+
 // Function to get the expiry time of a token
 func GetExpiryTime(tokenString string) (time.Time, error) {
 	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
