@@ -11,11 +11,12 @@ import (
 var secretKey = []byte("secret-key")
 var refreshSecretKey = []byte("refresh-secret-key")
 
-// Create JWT token
-func CreateToken(email string) (string, error) {
+/// Create JWT token
+func CreateToken(email string, id uint) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"email": email,
+			"id":    float64(id), // Store as float64
 			"exp":   time.Now().Add(time.Minute * 30).Unix(), // 30 min expiry
 		})
 
@@ -28,33 +29,37 @@ func CreateToken(email string) (string, error) {
 }
 
 // Verify JWT token and check if it is blacklisted
-func VerifyToken(tokenString string) (string, error) {
+func VerifyToken(tokenString string) (string, uint, error) {
 	if IsTokenBlacklisted(tokenString) {
-		return "", fmt.Errorf("token is blacklisted")
+		return "", 0, fmt.Errorf("token is blacklisted")
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 
-	if err != nil {
-		return "", err
-	}
-
-	if !token.Valid {
-		return "", fmt.Errorf("invalid token")
+	if err != nil || !token.Valid {
+		return "", 0, fmt.Errorf("invalid token")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", fmt.Errorf("invalid token claims")
+		return "", 0, fmt.Errorf("invalid token claims")
 	}
 
 	email, ok := claims["email"].(string)
 	if !ok {
-		return "", fmt.Errorf("invalid email")
+		return "", 0, fmt.Errorf("invalid email")
 	}
-	return email, nil
+
+	// Retrieve id as float64 and convert to uint
+	idFloat, ok := claims["id"].(float64)
+	if !ok {
+		return "", 0, fmt.Errorf("invalid id format")
+	}
+	id := uint(idFloat)
+
+	return email, id, nil
 }
 
 // Function to create a refresh token
@@ -70,36 +75,6 @@ func CreateRefreshToken(email string)(string,error){
 	}
 	return tokenString, nil
 }
-
-// Verify Refresh Token and issue a new access token
-// func RefreshAccessToken(refreshToken string,dbRefreshToken string) (string, string, error) {
-// 	token, err := jwt.ParseWithClaims(refreshToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
-// 		return refreshSecretKey, nil
-// 	})
-
-// 	if err != nil || !token.Valid {
-// 		return "", "", fmt.Errorf("invalid refresh token")
-// 	}
-
-// 	claims, ok := token.Claims.(jwt.MapClaims)
-// 	if !ok {
-// 		return "", "", fmt.Errorf("invalid token claims")
-// 	}
-
-// 	email, ok := claims["email"].(string)
-// 	if !ok {
-// 		return "", "", fmt.Errorf("invalid email")
-// 	}
-
-// 	// Check if the refresh token is present in the database
-
-
-// 	// Generate new tokens
-// 	newAccessToken, _ := CreateToken(email)
-// 	newRefreshToken, _ := CreateRefreshToken(email)
-
-// 	return newAccessToken, newRefreshToken, nil
-// }
 
 // VerifyRefreshToken checks the validity of a refresh token
 func RefreshAccessToken(refreshToken string) (string,string,error) {
@@ -146,7 +121,7 @@ func RefreshAccessToken(refreshToken string) (string,string,error) {
 	}
 
 	// Generate new tokens
-	newAccessToken, err := CreateToken(email)
+	newAccessToken, err := CreateToken(email,user.ID)
 	if err != nil {
 		return "","", fmt.Errorf("error creating new access token")
 	}

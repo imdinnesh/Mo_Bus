@@ -1,9 +1,11 @@
 package database
 
 import (
+	"log"
+	"time"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 )
 
 func SetupDatabase() *gorm.DB{
@@ -60,5 +62,7 @@ type RefreshToken struct {
 	UserID       uint   `gorm:"index"`
 	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	EncryptedRefreshToken string
+	ExpiresAt time.Time 
+	DeviceID  string
 }
 

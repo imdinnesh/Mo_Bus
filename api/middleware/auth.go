@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"github/imdinnes/mobusapi/database"
 	"github/imdinnes/mobusapi/utils"
 	"net/http"
 
@@ -18,7 +17,7 @@ func AuthMiddleware() gin.HandlerFunc{
 			ctx.Abort()
 			return
 		}
-		email,err:=utils.VerifyToken(token)
+		email,id,err:=utils.VerifyToken(token)
 
 		if (err!=nil){
 			ctx.JSON(http.StatusUnauthorized,gin.H{
@@ -28,11 +27,8 @@ func AuthMiddleware() gin.HandlerFunc{
 			return
 
 		}
-		user:=database.User{}
-		db:=database.SetupDatabase()
-		db.Where("email=?",email).First(&user)
 		ctx.Set("email", email)
-        ctx.Set("userId", user.ID)
+        ctx.Set("userId", id)
 
         ctx.Next()
 	}

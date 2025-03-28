@@ -60,7 +60,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			})
 			return
 		}
-		accessToken, err := utils.CreateToken(result.Email)
+		accessToken, err := utils.CreateToken(result.Email,result.ID)
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"message": "Error creating token",
@@ -88,6 +88,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		refreshTokenEntry:=database.RefreshToken{
 			UserID: result.ID,
 			EncryptedRefreshToken:encryptedRefreshToken,
+			ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // Set expiry time to 7 days
 		}
 
 		// Save the refresh token entry to the database
