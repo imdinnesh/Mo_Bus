@@ -10,10 +10,10 @@ import (
 	"gorm.io/gorm"
 )
 
-func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
-	userRouter := router.Group("/user")
+func AdminRoutes(router *gin.RouterGroup, db *gorm.DB) {
+	AdminRouter := router.Group("/admin")
 
-	userRouter.POST("/signup",func(ctx *gin.Context) {
+	AdminRouter.POST("/signup",func(ctx *gin.Context) {
 		var user database.User
 		ctx.BindJSON(&user)
 		// check for request body
@@ -34,7 +34,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 		// create user
 		user.Balance=0.0;
-		user.Role="user"
+		user.Role="admin"
 		db.Create(&user)
 		ctx.JSON(http.StatusCreated,gin.H{
 			"message":"User created",
@@ -42,7 +42,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		
 	})
 
-	userRouter.POST("/signin",func(ctx *gin.Context) {
+	AdminRouter.POST("/signin",func(ctx *gin.Context) {
 		// user:=database.User{}
 		type requestBody struct {
 			Email string `json:"email"`
@@ -53,7 +53,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		ctx.BindJSON(&user)
 		if(user.Email==""|| user.Password==""||user.DeviceId==""){
 			ctx.JSON(http.StatusBadRequest,gin.H{
-				"message":"Email or password or deviceid is empty",
+				"message":"Email or password is empty",
 			})
 			return
 		}
@@ -111,7 +111,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 	// Refresh Token
 
-	userRouter.POST("/refresh-token",func(ctx *gin.Context) {
+	AdminRouter.POST("/refresh-token",func(ctx *gin.Context) {
 		// Get the refresh token from the request
 		type requestBody struct {
 			RefreshToken string `json:"refresh_token"`
@@ -145,7 +145,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		})
 	})
 
-	userRouter.PATCH("/reset-password",middleware.AuthMiddleware(),func(ctx *gin.Context) {
+	AdminRouter.PATCH("/reset-password",middleware.AuthMiddleware(),middleware.AdminMiddleware(),func(ctx *gin.Context) {
 		userid:=ctx.GetUint("userId")
 		type requestBody struct{
 			OldPassword string `json:"old_password"`
@@ -186,7 +186,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		
 	})
 
-	userRouter.POST("/logout", middleware.AuthMiddleware(), func(ctx *gin.Context) {
+	AdminRouter.POST("/logout", middleware.AuthMiddleware(),middleware.AdminMiddleware(),func(ctx *gin.Context) {
 		// Get token from Authorization header
 		token := ctx.GetHeader("Authorization")
 		if token == "" {
@@ -237,7 +237,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 
 
-	userRouter.GET("/profile",middleware.AuthMiddleware(),func(ctx *gin.Context) {
+	AdminRouter.GET("/profile",middleware.AuthMiddleware(),middleware.AdminMiddleware(),func(ctx *gin.Context) {
 		userId:=ctx.GetUint("userId")
 		user:=database.User{}
 		db.Where("id = ?", userId).First(&user)

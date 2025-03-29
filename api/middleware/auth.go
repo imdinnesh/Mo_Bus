@@ -17,7 +17,7 @@ func AuthMiddleware() gin.HandlerFunc{
 			ctx.Abort()
 			return
 		}
-		email,id,deviceID,err:=utils.VerifyToken(token)
+		email,id,deviceID,role,err:=utils.VerifyToken(token)
 
 		if (err!=nil){
 			ctx.JSON(http.StatusUnauthorized,gin.H{
@@ -31,8 +31,22 @@ func AuthMiddleware() gin.HandlerFunc{
 		ctx.Set("email", email)
         ctx.Set("userId", id)
 		ctx.Set("deviceId", deviceID)
-		
+		ctx.Set("role", role)
         ctx.Next()
 	}
 
+}
+
+func AdminMiddleware()gin.HandlerFunc{
+	return func(ctx *gin.Context) {
+		role:=ctx.GetString("role")
+		if(role!="admin"){
+			ctx.JSON(http.StatusForbidden,gin.H{
+				"message":"You are not authorized to access this resource",
+			})
+			ctx.Abort()
+			return
+		}
+		ctx.Next()
+	}
 }

@@ -27,6 +27,7 @@ type User struct{
 	Email string `json:"email"`
 	Password string `json:"password"`
 	Balance float64 `json:"balance"`
+	Role string `json:"role"` // "user" or "admin"
 }
 
 // Stops Table
