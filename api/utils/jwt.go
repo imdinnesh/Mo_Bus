@@ -12,12 +12,13 @@ var secretKey = []byte("secret-key")
 var refreshSecretKey = []byte("refresh-secret-key")
 
 /// Create JWT token
-func CreateToken(email string, id uint) (string, error) {
+func CreateToken(email string, id uint, deviceID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"email": email,
-			"id":    float64(id), // Store as float64
-			"exp":   time.Now().Add(time.Minute * 30).Unix(), // 30 min expiry
+			"email":     email,
+			"id":        float64(id), // Store as float64 for compatibility
+			"device_id": deviceID,    // Include device ID
+			"exp":       time.Now().Add(time.Minute * 30).Unix(), // 30 min expiry
 		})
 
 	tokenString, err := token.SignedString(secretKey)
@@ -28,47 +29,60 @@ func CreateToken(email string, id uint) (string, error) {
 	return tokenString, nil
 }
 
-// Verify JWT token and check if it is blacklisted
-func VerifyToken(tokenString string) (string, uint, error) {
-	if IsTokenBlacklisted(tokenString) {
-		return "", 0, fmt.Errorf("token is blacklisted")
-	}
 
+// Verify JWT token and check if it is blacklisted
+func VerifyToken(tokenString string) (string, uint, string, error) {
+	// Parse JWT token
 	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 
 	if err != nil || !token.Valid {
-		return "", 0, fmt.Errorf("invalid token")
+		return "", 0, "", fmt.Errorf("invalid token")
 	}
 
+	// Extract claims
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", 0, fmt.Errorf("invalid token claims")
+		return "", 0, "", fmt.Errorf("invalid token claims")
 	}
 
 	email, ok := claims["email"].(string)
 	if !ok {
-		return "", 0, fmt.Errorf("invalid email")
+		return "", 0, "", fmt.Errorf("invalid email")
 	}
 
 	// Retrieve id as float64 and convert to uint
 	idFloat, ok := claims["id"].(float64)
 	if !ok {
-		return "", 0, fmt.Errorf("invalid id format")
+		return "", 0, "", fmt.Errorf("invalid id format")
 	}
-	id := uint(idFloat)
+	userID := uint(idFloat)
 
-	return email, id, nil
+	// Retrieve deviceID (ensure it's a string)
+	deviceID, ok := claims["device_id"].(string)
+	if !ok {
+		return "", 0, "", fmt.Errorf("invalid device ID")
+	}
+
+	// Check if token is blacklisted
+	if IsTokenBlacklisted(userID, deviceID, tokenString) {
+		return "", 0, "", fmt.Errorf("token is blacklisted")
+	}
+
+	return email, userID, deviceID, nil
 }
 
+
 // Function to create a refresh token
-func CreateRefreshToken(email string)(string,error){
-	token:=jwt.NewWithClaims(jwt.SigningMethodHS256,
+func CreateRefreshToken(email string, deviceID string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"email": email,
-			"exp":   time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 days expiry
+			"email":     email,
+			"device_id": deviceID, // Include device ID
+			"exp":       time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 days expiry
 		})
+
 	tokenString, err := token.SignedString(refreshSecretKey)
 	if err != nil {
 		return "", err
@@ -76,68 +90,80 @@ func CreateRefreshToken(email string)(string,error){
 	return tokenString, nil
 }
 
+
 // VerifyRefreshToken checks the validity of a refresh token
-func RefreshAccessToken(refreshToken string) (string,string,error) {
+func RefreshAccessToken(refreshToken string) (string, string, error) {
+	// Parse the refresh token
 	token, err := jwt.ParseWithClaims(refreshToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return refreshSecretKey, nil
 	})
 
 	if err != nil || !token.Valid {
-		return "","", fmt.Errorf("invalid refresh token")
+		return "", "", fmt.Errorf("invalid refresh token")
 	}
 
+	// Extract claims
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return "", "",fmt.Errorf("invalid token claims")
+		return "", "", fmt.Errorf("invalid token claims")
 	}
 
 	email, ok := claims["email"].(string)
 	if !ok {
-		return "","", fmt.Errorf("invalid email")
+		return "", "", fmt.Errorf("invalid email")
 	}
 
-	// Check if the refresh token is present in the database
-	db:=database.SetupDatabase();
-
-	user:=database.User{}
-
-	db.Where("email=?",email).First(&user)
-
-	refreshTokenEntry:=database.RefreshToken{}
-	db.Where("user_id=?",user.ID).First(&refreshTokenEntry)
-
-	if refreshTokenEntry.ID==0{
-		return "","", fmt.Errorf("refresh token not found in database.Please login again")
+	deviceID, ok := claims["device_id"].(string)
+	if !ok {
+		return "", "", fmt.Errorf("invalid device ID")
 	}
 
-	// Decrypt the refresh token
-	decryptedRefreshToken,err:=DecryptToken(refreshTokenEntry.EncryptedRefreshToken)
-	if err!=nil{
-		return "","", fmt.Errorf("error decrypting refresh token")
+	// Check if the refresh token exists in the database
+	db := database.SetupDatabase()
+
+	user := database.User{}
+	db.Where("email = ?", email).First(&user)
+
+	refreshTokenEntry := database.RefreshToken{}
+	db.Where("user_id = ? AND device_id = ?", user.ID, deviceID).First(&refreshTokenEntry)
+
+	if refreshTokenEntry.ID == 0 {
+		return "", "", fmt.Errorf("refresh token not found in database. Please login again")
 	}
 
-	if decryptedRefreshToken!=refreshToken{
-		return "","", fmt.Errorf("refresh token is not valid")
-	}
-
-	// Generate new tokens
-	newAccessToken, err := CreateToken(email,user.ID)
+	// Decrypt and verify the refresh token
+	decryptedRefreshToken, err := DecryptToken(refreshTokenEntry.EncryptedRefreshToken)
 	if err != nil {
-		return "","", fmt.Errorf("error creating new access token")
+		return "", "", fmt.Errorf("error decrypting refresh token")
 	}
-	newRefreshToken, err := CreateRefreshToken(email)
+
+	if decryptedRefreshToken != refreshToken {
+		return "", "", fmt.Errorf("refresh token is not valid")
+	}
+
+	// Generate new tokens using the same device ID
+	newAccessToken, err := CreateToken(email, user.ID, deviceID)
 	if err != nil {
-		return "","", fmt.Errorf("error creating new refresh token")
+		return "", "", fmt.Errorf("error creating new access token")
 	}
-	// Update the refresh token in the database
+
+	newRefreshToken, err := CreateRefreshToken(email, deviceID)
+	if err != nil {
+		return "", "", fmt.Errorf("error creating new refresh token")
+	}
+
+	// Encrypt and update the new refresh token in the database
 	encryptedRefreshToken, err := EncryptToken(newRefreshToken)
 	if err != nil {
-		return "","", fmt.Errorf("error encrypting new refresh token")
+		return "", "", fmt.Errorf("error encrypting new refresh token")
 	}
+
 	refreshTokenEntry.EncryptedRefreshToken = encryptedRefreshToken
 	db.Save(&refreshTokenEntry)
+
 	return newAccessToken, newRefreshToken, nil
 }
+
 
 // Function to get the expiry time of a token
 func GetExpiryTime(tokenString string) (time.Time, error) {

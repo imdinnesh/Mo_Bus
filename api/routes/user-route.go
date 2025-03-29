@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"github/imdinnes/mobusapi/database"
 	"github/imdinnes/mobusapi/middleware"
 	"github/imdinnes/mobusapi/utils"
@@ -43,9 +42,15 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	})
 
 	userRouter.POST("/signin",func(ctx *gin.Context) {
-		user:=database.User{}
+		// user:=database.User{}
+		type requestBody struct {
+			Email string `json:"email"`
+			Password string `json:"password"`
+			DeviceId string `json:"device_id"`
+		}
+		var user requestBody
 		ctx.BindJSON(&user)
-		if(user.Email==""|| user.Password==""){
+		if(user.Email==""|| user.Password==""||user.DeviceId==""){
 			ctx.JSON(http.StatusBadRequest,gin.H{
 				"message":"Email or password is empty",
 			})
@@ -60,7 +65,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			})
 			return
 		}
-		accessToken, err := utils.CreateToken(result.Email,result.ID)
+		accessToken, err := utils.CreateToken(result.Email,result.ID,user.DeviceId)
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"message": "Error creating token",
@@ -68,7 +73,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			return
 		}
 
-		refreshToken,err:=utils.CreateRefreshToken(result.Email)
+		refreshToken,err:=utils.CreateRefreshToken(result.Email,user.DeviceId)
 		if err != nil {
 			ctx.JSON(500, gin.H{
 				"message": "Error creating refresh token",
@@ -89,6 +94,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			UserID: result.ID,
 			EncryptedRefreshToken:encryptedRefreshToken,
 			ExpiresAt: time.Now().Add(7 * 24 * time.Hour), // Set expiry time to 7 days
+			DeviceID: user.DeviceId,
 		}
 
 		// Save the refresh token entry to the database
@@ -181,7 +187,7 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 	userRouter.POST("/logout", middleware.AuthMiddleware(), func(ctx *gin.Context) {
 		// Get token from Authorization header
-		token:=ctx.GetHeader("Authorization")
+		token := ctx.GetHeader("Authorization")
 		if token == "" {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"message": "Token is required",
@@ -189,33 +195,43 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			return
 		}
 
+		// Get user ID and device ID from context
+		userID := ctx.GetUint("userId")
+		deviceID := ctx.GetString("deviceId")
+		if userID == 0 || deviceID == "" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"message": "User ID or device ID is missing",
+			})
+			return
+		}
 		// Get the expiry time of the token
-		expiryTime,err:=utils.GetExpiryTime(token)
+		expiryTime, err := utils.GetExpiryTime(token)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get expiry time"})
 			return
 		}
+	
 		// Calculate the time until expiry
 		timeUntilExpiry := time.Until(expiryTime)
-		fmt.Println(timeUntilExpiry)
-		err = utils.BlacklistToken(token, timeUntilExpiry)
+	
+		// Blacklist the token for the specific user and device
+		err = utils.BlacklistToken(userID, deviceID, token, timeUntilExpiry)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to blacklist token"})
 			return
 		}
-
-		// Delete the refresh token from the database
-
-		userId := ctx.GetUint("userId")
-
+	
+		// Delete the refresh token for the specific user & device
+		db := database.SetupDatabase()
 		refreshTokenEntry := database.RefreshToken{}
-		db.Where("user_id = ?", userId).First(&refreshTokenEntry)
+		db.Where("user_id = ? AND device_id = ?", userID, deviceID).First(&refreshTokenEntry)
 		if refreshTokenEntry.ID != 0 {
 			db.Delete(&refreshTokenEntry)
 		}
 	
 		ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 	})
+	
 	
 
 
