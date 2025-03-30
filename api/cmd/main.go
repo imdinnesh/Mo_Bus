@@ -26,8 +26,8 @@ func main(){
 	baseRoute:=r.Group(("/api/v1"));
 	routes.UserRoutes(baseRoute,db)
 	routes.AdminRoutes(baseRoute,db)
-	
-	r.Run((":8080"))
+	routes.RouteRoutes(baseRoute,db)
+	r.Run(":8080")
 
 }
 

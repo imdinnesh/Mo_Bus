@@ -41,7 +41,7 @@ type Route struct {
 	ID          uint        `gorm:"primaryKey" json:"id"`
 	RouteNumber string      `json:"route_number"`
 	RouteName   string      `json:"route_name"`
-	Direction   int         `json:"direction"` // 0 = Forward, 1 = Reverse
+	Direction   uint         `json:"direction"` // 1 = Forward, 2 = Reverse
 	RouteStops  []RouteStop `gorm:"foreignKey:RouteID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
