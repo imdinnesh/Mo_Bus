@@ -101,9 +101,20 @@ func RouteRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	
 		ctx.JSON(http.StatusOK, gin.H{"message": "Route updated successfully"})
 	})
+
+	routeRouter.DELETE("/delete-route/:id", middleware.AuthMiddleware(), middleware.AdminMiddleware(), func(ctx *gin.Context) {
+		id := ctx.Param("id")
+		var route database.Route
 	
-
-
-
-
+		// Find the route by ID with error handling
+		if err := db.Where("id = ?", id).First(&route).Error; err != nil {
+			ctx.JSON(http.StatusNotFound, gin.H{"message": "Route not found"})
+			return
+		}
+	
+		// Delete the route
+		db.Delete(&route)
+	
+		ctx.JSON(http.StatusOK, gin.H{"message": "Route deleted successfully"})
+	})
 }
