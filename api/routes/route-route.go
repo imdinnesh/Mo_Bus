@@ -36,6 +36,35 @@ func RouteRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		})
 	})
 
+	routeRouter.GET("/get-routes",func(ctx *gin.Context) {
+        var routes []database.Route
+        db.Preload("RouteStops").Preload("RouteStops.Stop").Find(&routes)
+
+        ctx.JSON(http.StatusOK,gin.H{
+            "routes":routes,
+        })
+    })
+
+    routeRouter.GET("/get-route/:id",func(ctx *gin.Context) {
+        id := ctx.Param("id")
+        var route database.Route
+        db.Preload("RouteStops").Preload("RouteStops.Stop").Where("id = ?", id).First(&route)
+
+        if route.ID == 0 {
+            ctx.JSON(http.StatusNotFound,gin.H{
+                "message":"Route not found",
+            })
+            return
+        }
+
+        ctx.JSON(http.StatusOK,gin.H{
+            "route":route,
+        })
+    })
+
+	
+
+
 
 
 }
