@@ -50,7 +50,7 @@ type RouteStop struct {
 	ID        uint `gorm:"primaryKey" json:"id"`
 	RouteID   uint `json:"route_id"`
 	StopID    uint `json:"stop_id"`
-	StopIndex int  `json:"stop_index"` // Order of stops in the route
+	StopIndex uint  `json:"stop_index"` // Order of stops in the route
 
 	Route Route `gorm:"foreignKey:RouteID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Stop  Stop  `gorm:"foreignKey:StopID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`

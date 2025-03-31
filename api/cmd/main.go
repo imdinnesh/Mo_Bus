@@ -28,6 +28,7 @@ func main(){
 	routes.AdminRoutes(baseRoute,db)
 	routes.RouteRoutes(baseRoute,db)
 	routes.StopRoutes(baseRoute,db)
+	routes.RouteStops(baseRoute,db)
 	r.Run(":8080")
 
 }
