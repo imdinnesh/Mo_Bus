@@ -67,4 +67,20 @@ func RouteStops(router *gin.RouterGroup, db *gorm.DB){
 		}
 		ctx.JSON(http.StatusOK,gin.H{"message":"Route stop updated successfully"})
 	})
+
+	routeStopRouter.DELETE("/delete-route-stop/:id",func(ctx *gin.Context) {
+		id:=ctx.Param("id")
+		routeStop:=database.RouteStop{}
+		err:=db.Where("id=?",id).First(&routeStop).Error
+		if err!=nil{
+			ctx.JSON(http.StatusBadRequest,gin.H{"error":"Invalid Route Stop ID"})
+			return
+		}
+		err=db.Delete(&routeStop).Error
+		if err!=nil{
+			ctx.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to delete route stop"})
+			return
+		}
+		ctx.JSON(http.StatusOK,gin.H{"message":"Route stop deleted successfully"})
+	})
 }
