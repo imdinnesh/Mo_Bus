@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github/imdinnes/mobusapi/crons"
 	"github/imdinnes/mobusapi/database"
 	"github/imdinnes/mobusapi/routes"
 	"net/http"
@@ -13,7 +14,7 @@ func main(){
 
 	db:=database.SetupDatabase()
 	fmt.Println("Database connected")
-
+	crons.StartCronJobs(db)
 	r:=gin.Default();
 	// adding a test route
 	r.GET("/test",func(ctx *gin.Context) {
