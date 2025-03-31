@@ -28,5 +28,23 @@ func StopRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		ctx.JSON(http.StatusOK,gin.H{"message":"Stop added successfully"})
 	})
 
+	stopRouter.PUT("/update-stop/:id",func(ctx *gin.Context) {
+		id:=ctx.Param("id")
+		stop:=database.Stop{}
+		ctx.BindJSON(&stop)
+
+		if(stop.StopName==""){
+			ctx.JSON(http.StatusBadRequest,gin.H{"error":"Stop name is required"})
+			return
+		}
+
+		err:=db.Model(&stop).Where("id=?",id).Updates(stop).Error
+		if err!=nil{
+			ctx.JSON(http.StatusInternalServerError,gin.H{"error":"Failed to update stop"})
+			return
+		}
+		ctx.JSON(http.StatusOK,gin.H{"message":"Stop updated successfully"})
+	})
+
 
 }
