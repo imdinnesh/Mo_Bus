@@ -15,8 +15,6 @@ func SetupDatabase() *gorm.DB{
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
-	// db.Exec("DELETE FROM users")
-	// db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1")
 
 	db.AutoMigrate(&User{}, &Stop{}, &Route{}, &RouteStop{}, &RefreshToken{},&OTP{})
 	return db
