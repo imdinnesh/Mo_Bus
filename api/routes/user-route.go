@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"github/imdinnes/mobusapi/config"
 	"github/imdinnes/mobusapi/database"
 	"github/imdinnes/mobusapi/middleware"
 	"github/imdinnes/mobusapi/utils"
 	"net/http"
 	"time"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -35,9 +37,21 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		// create user
 		user.Balance=0.0;
 		user.Role="user"
-		db.Create(&user)
+		//otp 
+		user.OTP=utils.GenerateOTP()
+		user.OTPExpiry=time.Now().Add(5*time.Minute)
+		err:=db.Create(&user).Error
+		if err!=nil{
+			ctx.JSON(http.StatusInternalServerError,gin.H{
+				"message":"Error creating user",
+			})
+			return
+		}
+		// send email
+		email:=config.NewOnBoardingEmail(user.Name,user.OTP)
+		go utils.SendEmail(user.Email, email.Subject,email.Body)
 		ctx.JSON(http.StatusCreated,gin.H{
-			"message":"User created",
+			"message":"A verification email has been sent to your email address. Please verify your email to complete the signup process.",
 		})
 		
 	})

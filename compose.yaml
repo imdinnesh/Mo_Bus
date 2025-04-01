@@ -43,6 +43,15 @@ services:
     networks:
       - app_network
 
+  smtp4dev:
+    image: rnwood/smtp4dev
+    container_name: smtpdev
+    restart: unless-stopped
+    ports:
+      - "3030:80"  # Web UI
+      - "2525:25"  # SMTP port
+    networks:
+      - app_network
 volumes:
   postgres_data:
     driver: local

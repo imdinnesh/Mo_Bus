@@ -28,6 +28,9 @@ type User struct{
 	Password string `json:"password"`
 	Balance float64 `json:"balance"`
 	Role string `json:"role"` // "user" or "admin"
+	VerifiedStatus bool `json:"verified_status" gorm:"default:false"`
+	OTP string `json:"otp"`
+	OTPExpiry time.Time `json:"otp_expiry"`
 }
 
 // Stops Table
