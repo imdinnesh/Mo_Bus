@@ -84,12 +84,16 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid OTP"})
 			return
 		}
+
+		if( otp.ISUsed) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "OTP has already been used"})
+			return
+		}
 	
 		if otp.Expiry.Before(time.Now()) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": "OTP has expired"})
 			return
 		}
-	
 		// Valid OTP, so mark user as verified
 		if err := db.Model(&user).Update("verified_status", true).Error; err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user verification status"})
@@ -117,6 +121,16 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
 		}
+
+		// Invalidate the previous OTP
+
+		var unusedOtps []database.OTP
+		db.Where("user_id = ? AND is_used = ?", user.ID, false).Find(&unusedOtps)
+		for _, unusedOtp := range unusedOtps {
+			unusedOtp.ISUsed = true
+			db.Save(&unusedOtp)
+		}
+
 		// Generate a new OTP
 		otp := database.OTP{}
 		otp.OTP = utils.GenerateOTP()

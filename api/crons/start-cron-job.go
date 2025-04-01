@@ -15,6 +15,17 @@ func StartCronJobs(db *gorm.DB) {
 	if err != nil {
 		log.Fatal("Error adding cron job:", err)
 	}
+
+	_,err= c.AddFunc("@every 1h", func() {
+		DeleteExpiredOTP(db)
+		log.Println("Cron job executed to delete expired OTP tokens")
+
+	})
+	if err != nil {
+		log.Fatal("Error adding cron job:", err)
+	}
+
+
 	c.Start()
 	log.Println("Cron job started to delete expired refresh tokens")
 }

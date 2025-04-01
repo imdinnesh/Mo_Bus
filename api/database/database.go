@@ -41,6 +41,7 @@ type OTP struct {
 	Expiry    time.Time `json:"expiry"`
 	UserID    uint      `json:"user_id"` // Foreign key to User
 	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	ISUsed   bool      `json:"is_used" gorm:"default:false"`
 }
 
 // Stops Table
