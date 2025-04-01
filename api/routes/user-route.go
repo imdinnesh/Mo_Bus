@@ -37,18 +37,22 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		// create user
 		user.Balance=0.0;
 		user.Role="user"
-		//otp 
-		user.OTP=utils.GenerateOTP()
-		user.OTPExpiry=time.Now().Add(5*time.Minute)
-		err:=db.Create(&user).Error
+		db.Create(&user)
+		// generate OTP
+
+		otp:=database.OTP{}
+		otp.OTP=utils.GenerateOTP()
+		otp.Expiry=time.Now().Add(5*time.Minute)
+		otp.UserID=user.ID
+		err:=db.Create(&otp).Error
 		if err!=nil{
 			ctx.JSON(http.StatusInternalServerError,gin.H{
-				"message":"Error creating user",
+				"message":"Please try again",
 			})
 			return
 		}
 		// send email
-		email:=config.NewOnBoardingEmail(user.Name,user.OTP)
+		email:=config.NewOnBoardingEmail(user.Name,otp.OTP)
 		go utils.SendEmail(user.Email, email.Subject,email.Body)
 		ctx.JSON(http.StatusCreated,gin.H{
 			"message":"A verification email has been sent to your email address. Please verify your email to complete the signup process.",
@@ -57,50 +61,76 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	})
 
 	userRouter.POST("/verify-email",func(ctx *gin.Context) {
-		type requestBody struct {
+		var request struct {
 			Email string `json:"email"`
-			OTP string `json:"otp"`
+			OTP   string `json:"otp"`
 		}
-		body:=requestBody{}
-		ctx.BindJSON(&body)
-		if(body.Email==""|| body.OTP==""){
-			ctx.JSON(http.StatusBadRequest,gin.H{
-				"message":"Email or otp is empty",
-			})
+	
+		if err := ctx.ShouldBindJSON(&request); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 			return
 		}
+	
+		user:= database.User{}
+		otp:= database.OTP{}
+	
+		// Find the user by email
+		if err := db.Where("email = ?", request.Email).First(&user).Error; err != nil {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			return
+		}
+	
+		if err := db.Where("user_id = ? AND otp = ?", user.ID, request.OTP).First(&otp).Error; err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid OTP"})
+			return
+		}
+	
+		if otp.Expiry.Before(time.Now()) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "OTP has expired"})
+			return
+		}
+	
+		// Valid OTP, so mark user as verified
+		if err := db.Model(&user).Update("verified_status", true).Error; err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user verification status"})
+			return
+		}
+	
+		if err := db.Delete(&otp).Error; err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete OTP"})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{"message": "Your email has been verified successfully!"})
+	})
 
-		user:=database.User{}
-		db.Where("email = ?", body.Email).First(&user)
-		if(user.ID==0){
-			ctx.JSON(http.StatusNotFound,gin.H{
-				"message":"User not found",
-			})
+	userRouter.POST("/resend-otp",func(ctx *gin.Context) {
+		var request struct {
+			Email string `json:"email"`
+		}
+		if err := ctx.ShouldBindJSON(&request); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 			return
 		}
-		if(user.VerifiedStatus){
-			ctx.JSON(http.StatusConflict,gin.H{
-				"message":"User already verified",
-			})
+		user:= database.User{}
+		// Find the user by email
+		if err := db.Where("email = ?", request.Email).First(&user).Error; err != nil {
+			ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 			return
 		}
-		if(user.OTP!=body.OTP){
-			ctx.JSON(http.StatusBadRequest,gin.H{
-				"message":"OTP is incorrect",
-			})
+		// Generate a new OTP
+		otp := database.OTP{}
+		otp.OTP = utils.GenerateOTP()
+		otp.Expiry = time.Now().Add(5 * time.Minute)
+		otp.UserID = user.ID
+		err := db.Create(&otp).Error
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create OTP"})
 			return
 		}
-		if(time.Now().After(user.OTPExpiry)){
-			ctx.JSON(http.StatusBadRequest,gin.H{
-				"message":"OTP is expired",
-			})
-			return
-		}
-		user.VerifiedStatus=true
-		db.Save(&user)
-		ctx.JSON(http.StatusOK,gin.H{
-			"message":"User verified successfully.Please login to continue",
-		})
+		// Send the OTP to the user's email
+		email := config.NewOnBoardingEmail(user.Name, otp.OTP)
+		go utils.SendEmail(user.Email, email.Subject, email.Body)
+		ctx.JSON(http.StatusOK, gin.H{"message": "A new OTP has been sent to your email address"})
 	})
 
 	userRouter.POST("/signin",func(ctx *gin.Context) {
