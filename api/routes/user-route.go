@@ -56,6 +56,53 @@ func UserRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		
 	})
 
+	userRouter.POST("/verify-email",func(ctx *gin.Context) {
+		type requestBody struct {
+			Email string `json:"email"`
+			OTP string `json:"otp"`
+		}
+		body:=requestBody{}
+		ctx.BindJSON(&body)
+		if(body.Email==""|| body.OTP==""){
+			ctx.JSON(http.StatusBadRequest,gin.H{
+				"message":"Email or otp is empty",
+			})
+			return
+		}
+
+		user:=database.User{}
+		db.Where("email = ?", body.Email).First(&user)
+		if(user.ID==0){
+			ctx.JSON(http.StatusNotFound,gin.H{
+				"message":"User not found",
+			})
+			return
+		}
+		if(user.VerifiedStatus){
+			ctx.JSON(http.StatusConflict,gin.H{
+				"message":"User already verified",
+			})
+			return
+		}
+		if(user.OTP!=body.OTP){
+			ctx.JSON(http.StatusBadRequest,gin.H{
+				"message":"OTP is incorrect",
+			})
+			return
+		}
+		if(time.Now().After(user.OTPExpiry)){
+			ctx.JSON(http.StatusBadRequest,gin.H{
+				"message":"OTP is expired",
+			})
+			return
+		}
+		user.VerifiedStatus=true
+		db.Save(&user)
+		ctx.JSON(http.StatusOK,gin.H{
+			"message":"User verified successfully.Please login to continue",
+		})
+	})
+
 	userRouter.POST("/signin",func(ctx *gin.Context) {
 		// user:=database.User{}
 		type requestBody struct {
