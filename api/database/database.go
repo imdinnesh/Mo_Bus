@@ -16,7 +16,13 @@ func SetupDatabase() *gorm.DB{
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	db.AutoMigrate(&User{}, &Stop{}, &Route{}, &RouteStop{}, &RefreshToken{},&OTP{})
+	// // Delete all records (optional)
+	// db.Exec("DELETE FROM users")
+
+	// // Reset the sequence for the 'users' table
+	// db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1")
+
+	db.AutoMigrate(&User{}, &Stop{}, &Route{}, &RouteStop{}, &RefreshToken{})
 	return db
 
 }
@@ -29,18 +35,8 @@ type User struct {
 	Balance        float64   `json:"balance"`
 	Role           string    `json:"role"` // "user" or "admin"
 	VerifiedStatus bool      `json:"verified_status" gorm:"default:false"`
-	OTP            []OTP     `gorm:"foreignKey:UserID;references:ID" json:"otp"` // One-to-many relationship
 }
 
-// OTP Table
-type OTP struct {
-	ID        uint      `gorm:"primaryKey" json:"id"`
-	OTP       string    `json:"otp"`
-	Expiry    time.Time `json:"expiry"`
-	UserID    uint      `json:"user_id"` // Foreign key to User
-	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	ISUsed   bool      `json:"is_used" gorm:"default:false"`
-}
 
 // Stops Table
 type Stop struct {

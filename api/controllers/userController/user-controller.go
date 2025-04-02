@@ -35,18 +35,13 @@ func SignUp(db *gorm.DB) gin.HandlerFunc {
 		user.Role = "user"
 		db.Create(&user)
 
-		otp := database.OTP{
-			OTP:    utils.GenerateOTP(),
-			Expiry: time.Now().Add(5 * time.Minute),
-			UserID: user.ID,
-		}
-
-		if err := db.Create(&otp).Error; err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Please try again"})
+		otp := utils.GenerateOTP()
+		err := utils.StoreOTP(user.Email, otp, 5*time.Minute)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to store OTP"})
 			return
 		}
-
-		email := config.NewOnBoardingEmail(user.Name, otp.OTP)
+		email := config.NewOnBoardingEmail(user.Name, otp)
 		go utils.SendEmail(user.Email, email.Subject, email.Body)
 
 		ctx.JSON(http.StatusCreated, gin.H{
@@ -135,7 +130,7 @@ func VerifyEmail(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		user := database.User{}
-		otp := database.OTP{}
+		// otp := database.OTP{}
 
 		// Find the user by email
 		if err := db.Where("email = ?", request.Email).First(&user).Error; err != nil {
@@ -143,30 +138,26 @@ func VerifyEmail(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		if err := db.Where("user_id = ? AND otp = ?", user.ID, request.OTP).First(&otp).Error; err != nil {
+		if user.VerifiedStatus {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "User is already verified"})
+			return
+		}
+
+		// Check if the OTP is valid
+		otpCorrect, err := utils.VerifyOTP(request.Email, request.OTP)
+		if err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid OTP"})
 			return
 		}
-
-		if otp.ISUsed {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "OTP has already been used"})
+		if !otpCorrect {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid OTP"})
 			return
 		}
-
-		if otp.Expiry.Before(time.Now()) {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "OTP has expired"})
-			return
-		}
-		// Valid OTP, so mark user as verified
 		if err := db.Model(&user).Update("verified_status", true).Error; err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user verification status"})
 			return
 		}
 
-		if err := db.Delete(&otp).Error; err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete OTP"})
-			return
-		}
 		ctx.JSON(http.StatusOK, gin.H{"message": "Your email has been verified successfully!"})
 	}
 }
@@ -187,32 +178,24 @@ func ResendOTP(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		if user.VerifiedStatus{
+		if user.VerifiedStatus {
 			ctx.JSON(http.StatusBadRequest, gin.H{"error": "User is already verified"})
 			return
 		}
 
-		// Invalidate the previous OTP
-
-		var unusedOtps []database.OTP
-		db.Where("user_id = ? AND is_used = ?", user.ID, false).Find(&unusedOtps)
-		for _, unusedOtp := range unusedOtps {
-			unusedOtp.ISUsed = true
-			db.Save(&unusedOtp)
-		}
-
-		// Generate a new OTP
-		otp := database.OTP{}
-		otp.OTP = utils.GenerateOTP()
-		otp.Expiry = time.Now().Add(5 * time.Minute)
-		otp.UserID = user.ID
-		err := db.Create(&otp).Error
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create OTP"})
+		// Check if OTP can be resent (apply cooldown)
+		if !utils.CanResendOTP(request.Email, 30*time.Second) { // Cooldown of 30 seconds
+			ctx.JSON(http.StatusTooManyRequests, gin.H{"message": "Please wait before requesting a new OTP"})
 			return
 		}
-		// Send the OTP to the user's email
-		email := config.NewOnBoardingEmail(user.Name, otp.OTP)
+		// Generate a new OTP
+		otp := utils.GenerateOTP()
+		err := utils.StoreOTP(user.Email, otp, 5*time.Minute)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to store OTP"})
+			return
+		}
+		email := config.NewOnBoardingEmail(user.Name, otp)
 		go utils.SendEmail(user.Email, email.Subject, email.Body)
 		ctx.JSON(http.StatusOK, gin.H{"message": "A new OTP has been sent to your email address"})
 	}
@@ -320,17 +303,17 @@ func Logout(db *gorm.DB) gin.HandlerFunc {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get expiry time"})
 			return
 		}
-	
+
 		// Calculate the time until expiry
 		timeUntilExpiry := time.Until(expiryTime)
-	
+
 		// Blacklist the token for the specific user and device
 		err = utils.BlacklistToken(userID, deviceID, token, timeUntilExpiry)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to blacklist token"})
 			return
 		}
-	
+
 		// Delete the refresh token for the specific user & device
 		db := database.SetupDatabase()
 		refreshTokenEntry := database.RefreshToken{}
@@ -338,21 +321,20 @@ func Logout(db *gorm.DB) gin.HandlerFunc {
 		if refreshTokenEntry.ID != 0 {
 			db.Delete(&refreshTokenEntry)
 		}
-	
+
 		ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 	}
 }
 
-func Profile(db *gorm.DB) gin.HandlerFunc{
+func Profile(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		userId:=ctx.GetUint("userId")
-		user:=database.User{}
+		userId := ctx.GetUint("userId")
+		user := database.User{}
 		db.Where("id = ?", userId).First(&user)
-		ctx.JSON(http.StatusOK,gin.H{
-			"user":user.Email,
-			"balance":user.Balance,
-			"role":user.Role,
+		ctx.JSON(http.StatusOK, gin.H{
+			"user":    user.Email,
+			"balance": user.Balance,
+			"role":    user.Role,
 		})
 	}
 }
-
