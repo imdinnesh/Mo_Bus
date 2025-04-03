@@ -22,7 +22,7 @@ func SetupDatabase() *gorm.DB{
 	// // Reset the sequence for the 'users' table
 	// db.Exec("ALTER SEQUENCE users_id_seq RESTART WITH 1")
 
-	db.AutoMigrate(&User{}, &Stop{}, &Route{}, &RouteStop{}, &RefreshToken{})
+	db.AutoMigrate(&User{}, &Stop{}, &Route{}, &RouteStop{}, &RefreshToken{},&Transaction{},&Booking{},&QrCode{})
 	return db
 
 }
@@ -73,5 +73,35 @@ type RefreshToken struct {
 	EncryptedRefreshToken string
 	ExpiresAt time.Time 
 	DeviceID  string
+}
+
+type Transaction struct {
+	ID 	  uint      `gorm:"primaryKey" json:"id"`
+	UserID uint      `json:"user_id"`
+	Amount float64  `json:"amount"`
+	Status string   `json:"status"` // "success" or "failed" or "pending"
+	CreatedAt time.Time `json:"created_at"`
+	Type string `json:"type"` // "debit" or "credit"
+	User User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+type Booking struct{
+	// booking for a source and destination stop
+	ID uint `gorm:"primaryKey" json:"id"`
+	UserID uint `json:"user_id"`
+	SourceStopID uint `json:"source_stop_id"`
+	DestinationStopID uint `json:"destination_stop_id"`
+	RouteID uint `json:"route_id"`
+	BookingDate time.Time `json:"booking_date"`
+}
+
+type QrCode struct{
+	ID uint `gorm:"primaryKey" json:"id"`
+	UserID uint `json:"user_id"`
+	BookingID uint `json:"booking_id"`
+	QrCode string `json:"qr_code"`
+	ExpiresAt time.Time `json:"expires_at"`
+	Used bool `json:"used" gorm:"default:false"` // true if the QR code has been used
+	UsedAt time.Time `json:"used_at"`
 }
 
