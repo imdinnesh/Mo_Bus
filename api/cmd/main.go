@@ -33,6 +33,7 @@ func main() {
 	routes.RouteStops(baseRoute, db)
 	routes.PaymentRoutes(baseRoute, db)
 	routes.BookingRoutes(baseRoute,db)
+	routes.QrCodeRoutes(baseRoute,db)
 	r.Run(":8080")
 
 }

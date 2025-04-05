@@ -93,6 +93,7 @@ type Booking struct {
 	RouteID            uint      `json:"route_id"`
 	BookingDate        time.Time `json:"booking_date"`
 	Amount             float64   `json:"amount"`
+	IsGenerated bool    `json:"is_generated" gorm:"default:false"`
 	SourceStop         Stop      `gorm:"foreignKey:SourceStopID;references:ID"`
 	DestinationStop    Stop      `gorm:"foreignKey:DestinationStopID;references:ID"`
 	Route              Route     `gorm:"foreignKey:RouteID;references:ID"`
@@ -103,8 +104,6 @@ type QrCode struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	UserID    uint      `json:"user_id"`
 	BookingID uint      `json:"booking_id"`
-	QrCode    string    `json:"qr_code"`
-	ExpiresAt time.Time `json:"expires_at"`
 	Used      bool      `json:"used" gorm:"default:false"` // true if the QR code has been used
 	UsedAt    time.Time `json:"used_at"`
 }
