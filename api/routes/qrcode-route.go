@@ -8,6 +8,7 @@ import (
 	"github/imdinnes/mobusapi/utils/QrCode"
 	"gorm.io/gorm"
 	"net/http"
+	"strings"
 )
 
 func QrCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
@@ -58,7 +59,7 @@ func QrCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			return
 		}
 
-		sessionKey, err := qrcode.CreateSession(userId,request.BookingID, request.RouteID, request.Source, request.Destination)
+		sessionKey, err := qrcode.CreateSession(userId, request.BookingID, request.RouteID, request.Source, request.Destination)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to create session",
@@ -84,6 +85,8 @@ func QrCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		userID := ctx.GetUint("userId")
 		userIDStr := fmt.Sprintf("%d", userID)
 		sessionkey := ctx.Query("session_key")
+		// session key is in the format "trip:userId:BookingId"
+		bookingID := strings.Split(sessionkey, ":")[2]
 		if sessionkey == "" {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error": "Session key is required",
@@ -100,7 +103,7 @@ func QrCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 			return
 		}
 
-		qrCode, err := qrcode.GenerateQRCode(userIDStr, routeID, source, destination)
+		qrCode, err := qrcode.GenerateQRCode(userIDStr, routeID, source, destination, bookingID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to generate QR code",
@@ -109,6 +112,36 @@ func QrCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
 		}
 
 		ctx.JSON(http.StatusOK, gin.H{"qr_code": qrCode})
+	})
+
+	qrCodeRouter.POST("/validate", func(ctx *gin.Context) {
+		type VerifyRequest struct {
+			UserID      string `json:"user_id"`          // From scanned QR
+			RouteID     string `json:"route_id"`         // From validator input
+			Source      string `json:"source_stop"`      // From validator input
+			Destination string `json:"destination_stop"` // From validator input
+			OTP         string `json:"otp"`              // From scanned QR
+			BookingID   string `json:"booking_id"`       // From scanned QR
+		}
+
+		var request VerifyRequest
+		if err := ctx.ShouldBindJSON(&request); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": "Invalid request payload",
+			})
+			return
+		}
+
+		// Step 1: Verify QR authenticity and validity
+		if err := qrcode.VerifyQRCode(request.UserID, request.RouteID, request.Source, request.Destination, request.OTP); err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "QR code successfully verified and marked as used",
+		})
 	})
 
 }
