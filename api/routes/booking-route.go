@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github/imdinnes/mobusapi/controllers/bookingController"
+	bookingcontroller "github/imdinnes/mobusapi/controllers/bookingController"
 	"github/imdinnes/mobusapi/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -13,9 +13,9 @@ const BookingAmount = 10
 func BookingRoutes(router *gin.RouterGroup, db *gorm.DB) {
 	bookingRouter := router.Group("/booking", middleware.AuthMiddleware())
 
-	bookingRouter.POST("/create-booking",bookingcontroller.CreateBooking(db))
+	bookingRouter.POST("/create-booking", bookingcontroller.CreateBooking(db))
 
-	bookingRouter.GET("/get-bookings",bookingcontroller.GetBookings(db))
+	bookingRouter.GET("/get-bookings", bookingcontroller.GetBookings(db))
 
-	bookingRouter.GET("/get-booking/:id",bookingcontroller.GetBooking(db))
+	bookingRouter.GET("/get-booking/:id", bookingcontroller.GetBooking(db))
 }

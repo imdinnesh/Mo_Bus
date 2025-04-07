@@ -1,17 +1,18 @@
 package qrcodecontroller
 
-import(
+import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github/imdinnes/mobusapi/database"
-	"github/imdinnes/mobusapi/utils/QrCode"
-	"gorm.io/gorm"
+	qrcode "github/imdinnes/mobusapi/utils/QrCode"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func StartTrip(db *gorm.DB) gin.HandlerFunc{
+func StartTrip(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userId := ctx.GetUint("userId")
 		type StartTripRequest struct {
@@ -94,7 +95,7 @@ func StartTrip(db *gorm.DB) gin.HandlerFunc{
 	}
 }
 
-func GenerateQRCode(db *gorm.DB) gin.HandlerFunc{
+func GenerateQRCode(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userID := ctx.GetUint("userId")
 		userIDStr := fmt.Sprintf("%d", userID)
@@ -129,7 +130,7 @@ func GenerateQRCode(db *gorm.DB) gin.HandlerFunc{
 	}
 }
 
-func VerifyQRCode(db *gorm.DB) gin.HandlerFunc{
+func VerifyQRCode(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		type VerifyRequest struct {
 			UserID      string `json:"user_id"`          // From scanned QR
@@ -139,7 +140,7 @@ func VerifyQRCode(db *gorm.DB) gin.HandlerFunc{
 			OTP         string `json:"otp"`              // From scanned QR
 			BookingID   string `json:"booking_id"`       // From scanned QR
 		}
-	
+
 		var request VerifyRequest
 		if err := ctx.ShouldBindJSON(&request); err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
@@ -147,7 +148,7 @@ func VerifyQRCode(db *gorm.DB) gin.HandlerFunc{
 			})
 			return
 		}
-	
+
 		// Step 1: Verify QR authenticity and validity
 		if err := qrcode.VerifyQRCode(request.UserID, request.RouteID, request.Source, request.Destination, request.OTP); err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
@@ -155,34 +156,33 @@ func VerifyQRCode(db *gorm.DB) gin.HandlerFunc{
 		}
 		// Step 3: Lookup and update QR code usage status in DB
 		var qrCode database.QrCode
-		if err := db.Where("booking_id = ?",request.BookingID).First(&qrCode).Error; err != nil {
+		if err := db.Where("booking_id = ?", request.BookingID).First(&qrCode).Error; err != nil {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error": "Invalid or unknown booking ID",
 			})
 			return
 		}
-	
+
 		if qrCode.Used {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"error": "QR code has already been used",
 			})
 			return
 		}
-	
+
 		// Step 4: Mark as used
 		qrCode.Used = true
 		qrCode.UsedAt = time.Now()
-	
+
 		if err := db.Save(&qrCode).Error; err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"error": "Failed to update QR code status",
 			})
 			return
 		}
-	
+
 		ctx.JSON(http.StatusOK, gin.H{
 			"message": "QR code successfully verified and marked as used",
 		})
 	}
 }
-

@@ -11,14 +11,13 @@ import (
 var secretKey = []byte("secret-key")
 var refreshSecretKey = []byte("refresh-secret-key")
 
-/// Create JWT token with role
 func CreateToken(email string, id uint, deviceID string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"email":     email,
 			"id":        float64(id), // Store as float64 for compatibility
 			"device_id": deviceID,
-			"role":      role, // Include role in token
+			"role":      role,                                    // Include role in token
 			"exp":       time.Now().Add(time.Minute * 30).Unix(), // 30 min expiry
 		})
 
@@ -30,7 +29,6 @@ func CreateToken(email string, id uint, deviceID string, role string) (string, e
 	return tokenString, nil
 }
 
-// Verify JWT token and check if it is blacklisted
 func VerifyToken(tokenString string) (string, uint, string, string, error) {
 	// Parse JWT token
 	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -79,13 +77,12 @@ func VerifyToken(tokenString string) (string, uint, string, string, error) {
 	return email, userID, deviceID, role, nil
 }
 
-// Create a refresh token with role
 func CreateRefreshToken(email string, deviceID string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,
 		jwt.MapClaims{
 			"email":     email,
 			"device_id": deviceID,
-			"role":      role, // Include role
+			"role":      role,                                      // Include role
 			"exp":       time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 days expiry
 		})
 
@@ -96,7 +93,6 @@ func CreateRefreshToken(email string, deviceID string, role string) (string, err
 	return tokenString, nil
 }
 
-// Refresh access token using a valid refresh token
 func RefreshAccessToken(refreshToken string) (string, string, error) {
 	// Parse the refresh token
 	token, err := jwt.ParseWithClaims(refreshToken, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
@@ -174,7 +170,6 @@ func RefreshAccessToken(refreshToken string) (string, string, error) {
 	return newAccessToken, newRefreshToken, nil
 }
 
-// Function to get the expiry time of a token
 func GetExpiryTime(tokenString string) (time.Time, error) {
 	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil

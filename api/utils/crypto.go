@@ -7,7 +7,6 @@ import (
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
-// Secret key (Should be securely stored, e.g., in environment variables)
 var secretPassKey [32]byte
 
 func init() {
@@ -17,7 +16,6 @@ func init() {
 	}
 }
 
-// EncryptToken encrypts the given token
 func EncryptToken(token string) (string, error) {
 	var nonce [24]byte
 	if _, err := rand.Read(nonce[:]); err != nil {
@@ -28,7 +26,6 @@ func EncryptToken(token string) (string, error) {
 	return base64.StdEncoding.EncodeToString(encrypted), nil
 }
 
-// DecryptToken decrypts the given encrypted token
 func DecryptToken(encryptedToken string) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(encryptedToken)
 	if err != nil {

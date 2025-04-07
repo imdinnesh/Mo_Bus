@@ -5,9 +5,10 @@ import (
 	// "github/imdinnes/mobusapi/config"
 	"github/imdinnes/mobusapi/database"
 	"github/imdinnes/mobusapi/utils"
-	"gorm.io/gorm"
 	"net/http"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 func SignUp(db *gorm.DB) gin.HandlerFunc {
@@ -187,7 +188,7 @@ func ResetPassword(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
-func Logout(db *gorm.DB) gin.HandlerFunc{
+func Logout(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// Get token from Authorization header
 		token := ctx.GetHeader("Authorization")
@@ -213,17 +214,17 @@ func Logout(db *gorm.DB) gin.HandlerFunc{
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to get expiry time"})
 			return
 		}
-	
+
 		// Calculate the time until expiry
 		timeUntilExpiry := time.Until(expiryTime)
-	
+
 		// Blacklist the token for the specific user and device
 		err = utils.BlacklistToken(userID, deviceID, token, timeUntilExpiry)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to blacklist token"})
 			return
 		}
-	
+
 		// Delete the refresh token for the specific user & device
 		db := database.SetupDatabase()
 		refreshTokenEntry := database.RefreshToken{}
@@ -231,20 +232,20 @@ func Logout(db *gorm.DB) gin.HandlerFunc{
 		if refreshTokenEntry.ID != 0 {
 			db.Delete(&refreshTokenEntry)
 		}
-	
+
 		ctx.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 	}
 }
 
-func Profile(db *gorm.DB) gin.HandlerFunc{
+func Profile(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		userId:=ctx.GetUint("userId")
-		user:=database.User{}
+		userId := ctx.GetUint("userId")
+		user := database.User{}
 		db.Where("id = ?", userId).First(&user)
-		ctx.JSON(http.StatusOK,gin.H{
-			"user":user.Email,
-			"balance":user.Balance,
-			"role":user.Role,
+		ctx.JSON(http.StatusOK, gin.H{
+			"user":    user.Email,
+			"balance": user.Balance,
+			"role":    user.Role,
 		})
 	}
 }

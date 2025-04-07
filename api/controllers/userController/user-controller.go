@@ -1,13 +1,14 @@
 package usercontroller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github/imdinnes/mobusapi/config"
 	"github/imdinnes/mobusapi/database"
 	"github/imdinnes/mobusapi/utils"
-	"gorm.io/gorm"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func SignUp(db *gorm.DB) gin.HandlerFunc {

@@ -7,21 +7,21 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware() gin.HandlerFunc{
+func AuthMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		token:=ctx.GetHeader("Authorization")
-		if(token==""){
-			ctx.JSON(http.StatusUnauthorized,gin.H{
-				"message":"Authorization token is required",
+		token := ctx.GetHeader("Authorization")
+		if token == "" {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"message": "Authorization token is required",
 			})
 			ctx.Abort()
 			return
 		}
-		email,id,deviceID,role,err:=utils.VerifyToken(token)
+		email, id, deviceID, role, err := utils.VerifyToken(token)
 
-		if (err!=nil){
-			ctx.JSON(http.StatusUnauthorized,gin.H{
-				"message":"Invalid token",
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"message": "Invalid token",
 			})
 			ctx.Abort()
 			return
@@ -29,20 +29,20 @@ func AuthMiddleware() gin.HandlerFunc{
 		}
 
 		ctx.Set("email", email)
-        ctx.Set("userId", id)
+		ctx.Set("userId", id)
 		ctx.Set("deviceId", deviceID)
 		ctx.Set("role", role)
-        ctx.Next()
+		ctx.Next()
 	}
 
 }
 
-func AdminMiddleware()gin.HandlerFunc{
+func AdminMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		role:=ctx.GetString("role")
-		if(role!="admin"){
-			ctx.JSON(http.StatusForbidden,gin.H{
-				"message":"You are not authorized to access this resource",
+		role := ctx.GetString("role")
+		if role != "admin" {
+			ctx.JSON(http.StatusForbidden, gin.H{
+				"message": "You are not authorized to access this resource",
 			})
 			ctx.Abort()
 			return

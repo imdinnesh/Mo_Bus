@@ -4,9 +4,9 @@ import (
 	"github/imdinnes/mobusapi/database"
 	"log"
 	"time"
+
 	"gorm.io/gorm"
 )
-
 
 func DeleteExpiredRefreshTokens(db *gorm.DB) {
 	refreshTokens := []database.RefreshToken{}
@@ -18,4 +18,3 @@ func DeleteExpiredRefreshTokens(db *gorm.DB) {
 	}
 	log.Println("Expired refresh tokens deleted")
 }
-

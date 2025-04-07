@@ -1,7 +1,7 @@
 package routes
 
 import (
-	qrcodecontroller "github/imdinnes/mobusapi/controllers/qrcodeController"
+	"github/imdinnes/mobusapi/controllers/qrcodeController"
 	"github/imdinnes/mobusapi/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -9,12 +9,12 @@ import (
 )
 
 func QrCodeRoutes(router *gin.RouterGroup, db *gorm.DB) {
-	qrCodeRouter := router.Group("/qrcode", middleware.AuthMiddleware())
+	qrCodeRouter := router.Group("/qrcode",middleware.AuthMiddleware())
 
-	qrCodeRouter.POST("/start-trip",qrcodecontroller.StartTrip(db))
+	qrCodeRouter.POST("/start-trip", qrcodecontroller.StartTrip(db))
 
-	qrCodeRouter.GET("/generate",qrcodecontroller.GenerateQRCode(db))
+	qrCodeRouter.GET("/generate", qrcodecontroller.GenerateQRCode(db))
 
 	qrCodeRouter.POST("/validate", qrcodecontroller.VerifyQRCode(db))
-	
+
 }

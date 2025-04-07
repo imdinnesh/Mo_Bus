@@ -1,11 +1,12 @@
 package bookingcontroller
 
 import (
-	"github.com/gin-gonic/gin"
 	"github/imdinnes/mobusapi/database"
-	"gorm.io/gorm"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 const BookingAmount = 10
@@ -82,7 +83,7 @@ func CreateBooking(db *gorm.DB) gin.HandlerFunc {
 func GetBookings(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userID := ctx.GetUint("userId")
-	
+
 		type BookingResponse struct {
 			ID                  uint      `json:"id"`
 			RouteNumber         string    `json:"route_number"`
@@ -92,19 +93,19 @@ func GetBookings(db *gorm.DB) gin.HandlerFunc {
 			BookingDate         time.Time `json:"booking_date"`
 			Amount              float64   `json:"amount"`
 		}
-	
-		bookings:=[]database.Booking{}
+
+		bookings := []database.Booking{}
 		err := db.Preload("SourceStop").
 			Preload("DestinationStop").
 			Preload("Route").
 			Where("user_id = ?", userID).
 			Find(&bookings).Error
-	
+
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch bookings"})
 			return
 		}
-	
+
 		var response []BookingResponse
 		for _, booking := range bookings {
 			response = append(response, BookingResponse{
@@ -117,7 +118,7 @@ func GetBookings(db *gorm.DB) gin.HandlerFunc {
 				Amount:              booking.Amount,
 			})
 		}
-	
+
 		ctx.JSON(http.StatusOK, response)
 
 	}
@@ -127,7 +128,7 @@ func GetBooking(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userId := ctx.GetUint("userId")
 		bookingId := ctx.Param("id")
-	
+
 		type BookingResponse struct {
 			ID                  uint      `json:"id"`
 			RouteNumber         string    `json:"route_number"`
@@ -137,21 +138,20 @@ func GetBooking(db *gorm.DB) gin.HandlerFunc {
 			BookingDate         time.Time `json:"booking_date"`
 			Amount              float64   `json:"amount"`
 		}
-	
-		booking:= database.Booking{}
+
+		booking := database.Booking{}
 		err := db.Preload("SourceStop").
 			Preload("DestinationStop").
 			Preload("Route").
 			Where("user_id = ?", userId).
 			Where("id = ?", bookingId).
 			First(&booking).Error
-	
+
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch booking"})
 			return
 		}
 
-	
 		ctx.JSON(http.StatusOK, gin.H{
 			"message": "Booking fetched successfully",
 			"booking": BookingResponse{
