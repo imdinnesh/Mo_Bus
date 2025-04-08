@@ -3,6 +3,7 @@ package admincontroller
 import (
 	"github.com/gin-gonic/gin"
 	// "github/imdinnes/mobusapi/config"
+	"github/imdinnes/mobusapi/config"
 	"github/imdinnes/mobusapi/database"
 	"github/imdinnes/mobusapi/utils"
 	"net/http"
@@ -226,7 +227,7 @@ func Logout(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		// Delete the refresh token for the specific user & device
-		db := database.SetupDatabase()
+		db := database.SetupDatabase(config.Load())
 		refreshTokenEntry := database.RefreshToken{}
 		db.Where("user_id = ? AND device_id = ?", userID, deviceID).First(&refreshTokenEntry)
 		if refreshTokenEntry.ID != 0 {

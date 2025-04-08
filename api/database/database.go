@@ -1,16 +1,16 @@
 package database
 
 import (
+	"github/imdinnes/mobusapi/config"
 	"log"
 	"time"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func SetupDatabase() *gorm.DB {
-
-	connStr := "postgresql://postgres:postgres@localhost:5432/mobus_database?sslmode=disable&TimeZone=Asia/Shanghai"
+func SetupDatabase(cfg *config.Config) *gorm.DB {
+	
+	connStr:=cfg.DBUrl
 	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)

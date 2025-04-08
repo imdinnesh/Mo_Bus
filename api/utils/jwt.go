@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"github/imdinnes/mobusapi/config"
 	"github/imdinnes/mobusapi/database"
 	"time"
 
@@ -125,7 +126,7 @@ func RefreshAccessToken(refreshToken string) (string, string, error) {
 	}
 
 	// Check if the refresh token exists in the database
-	db := database.SetupDatabase()
+	db := database.SetupDatabase(config.Load())
 
 	user := database.User{}
 	db.Where("email = ?", email).First(&user)
