@@ -7,6 +7,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 func SetupDatabase(cfg *config.Config) *gorm.DB {
 	
 	connStr:=cfg.DBUrl
@@ -14,9 +16,8 @@ func SetupDatabase(cfg *config.Config) *gorm.DB {
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}
+	DB = db
 	AutoMigrate(db)
-	
-
 	return db
 
 }
