@@ -1,25 +1,31 @@
 package user
 
 import (
-    "net/http"
-    "github.com/gin-gonic/gin"
-    "gorm.io/gorm"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func CreateUserHandler(db *gorm.DB) gin.HandlerFunc {
-    svc := NewService(NewRepository(db))
-    return func(c *gin.Context) {
-        var input User
-        if err := c.ShouldBindJSON(&input); err != nil {
-            c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-            return
-        }
+type Handler struct {
+	service Service
+}
 
-        user, err := svc.CreateUser(input)
-        if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-            return
-        }
-        c.JSON(http.StatusCreated, user)
+func NewHandler(s Service) *Handler {
+	return &Handler{service: s}
+}
+
+func (h *Handler) Register(c *gin.Context) {
+	req:=SignUpRequest{}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+    user,err:=h.service.Register(req)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+        return
     }
+
+	c.JSON(http.StatusCreated, user)
 }

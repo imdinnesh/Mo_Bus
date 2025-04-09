@@ -1,11 +1,15 @@
 package user
 
 import (
-    "github.com/gin-gonic/gin"
-    "gorm.io/gorm"
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-func RegisterRoutes(rg *gin.RouterGroup, db *gorm.DB) {
-    userGroup := rg.Group("/users")
-    userGroup.POST("/", CreateUserHandler(db))
+func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
+	repo := NewRepository(db)
+	service := NewService(repo)
+	handler := NewHandler(service)
+
+	users := r.Group("/user")
+    users.POST("/signup",handler.Register)  
 }

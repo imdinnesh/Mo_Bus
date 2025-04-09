@@ -1,17 +1,32 @@
 package user
 
 type Service interface {
-    CreateUser(user User) (User, error)
+	Register(req SignUpRequest) (*SignUpResponse, error)
 }
 
 type service struct {
-    repo Repository
+	repo Repository
 }
 
 func NewService(r Repository) Service {
-    return &service{repo: r}
+	return &service{repo: r}
 }
 
-func (s *service) CreateUser(user User) (User, error) {
-    return s.repo.Create(user)
+func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
+	user := &User{
+        Name:    req.Name,
+        Email:   req.Email,
+        Password: req.Password,
+	}
+
+	err:=s.repo.Create(user)
+    if err != nil {
+        return nil, err
+    }
+
+	return &SignUpResponse{
+        Status: "success",
+        Message: "User registered successfully",
+    }, nil
+
 }
