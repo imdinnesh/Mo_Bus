@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/imdinnesh/mobusapi/pkg/apierror"
 )
 
 type Handler struct {
@@ -14,18 +15,24 @@ func NewHandler(s Service) *Handler {
 	return &Handler{service: s}
 }
 
-func (h *Handler) Register(c *gin.Context) {
-	req:=SignUpRequest{}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (h *Handler) CreateUser(ctx *gin.Context) {
+	req := SignUpRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request"})
 		return
 	}
 
-    user,err:=h.service.Register(req)
-    if err != nil {
-        c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-        return
-    }
+	response, err := h.service.Register(req)
+	if err != nil {
+		if apiErr, ok := err.(*apierror.APIError); ok {
+			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+			return
+		}
+		// Fallback for unknown error types
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
 
-	c.JSON(http.StatusCreated, user)
+	ctx.JSON(http.StatusCreated, response)
 }

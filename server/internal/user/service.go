@@ -1,5 +1,18 @@
 package user
 
+import (
+	"fmt"
+	"net/http"
+	"time"
+
+	"github.com/imdinnesh/mobusapi/pkg/apierror"
+	"github.com/imdinnesh/mobusapi/pkg/email"
+	"github.com/imdinnesh/mobusapi/pkg/otp"
+	"github.com/imdinnesh/mobusapi/pkg/redis"
+	"github.com/imdinnesh/mobusapi/pkg/smtp"
+	"gorm.io/gorm"
+)
+
 type Service interface {
 	Register(req SignUpRequest) (*SignUpResponse, error)
 }
@@ -14,19 +27,39 @@ func NewService(r Repository) Service {
 
 func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
 	user := &User{
-        Name:    req.Name,
-        Email:   req.Email,
-        Password: req.Password,
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+        Balance:  0.0,
+        Role:     "user",
 	}
 
-	err:=s.repo.Create(user)
+	existingUser, err := s.repo.FindByEmail(user.Email)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return nil, apierror.New("Failed to check user existence", http.StatusInternalServerError)
+	}
+	if existingUser != nil && existingUser.ID != 0 {
+        errorMessage:=fmt.Sprintf("User with email %s already exists", user.Email)
+		return nil, apierror.New(errorMessage, http.StatusConflict)
+	}
+
+	err = s.repo.Create(user)
+	if err != nil {
+		return nil, apierror.New("Failed to create user", http.StatusInternalServerError)
+	}
+
+    otp:=otp.GenerateOTP()
+    err=redis.StoreOTP(user.Email, otp, 5*time.Minute)
     if err != nil {
-        return nil, err
+        return nil, apierror.New("Failed to store OTP", http.StatusInternalServerError)
     }
 
+    email:=email.NewOnBoardingEmail(user.Name, otp)
+    go smtp.SendEmail(user.Email, email.Subject, email.Body)
+
 	return &SignUpResponse{
-        Status: "success",
-        Message: "User registered successfully",
-    }, nil
+		Status:  "success",
+		Message: "A verification email has been sent. Please verify your email.",
+	}, nil
 
 }
