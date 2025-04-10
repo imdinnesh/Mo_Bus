@@ -60,3 +60,25 @@ func (h *Handler)VerifyUser(ctx *gin.Context){
 
 
 }
+
+func (h *Handler) ResendOTP(ctx *gin.Context) {
+	req := ResendOTPRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request"})
+		return
+	}
+
+	response, err := h.service.ResendOtp(req)
+	if err != nil {
+		if apiErr, ok := err.(*apierror.APIError); ok {
+			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+			return
+		}
+		// Fallback for unknown error types
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}

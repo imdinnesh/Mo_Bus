@@ -16,6 +16,7 @@ import (
 type Service interface {
 	Register(req SignUpRequest) (*SignUpResponse, error)
 	VerifyUser(req VerifyUserRequest) (*VerifyUserResponse, error)
+	ResendOtp(req ResendOTPRequest)(*ResendOTPResponse,error)
 }
 
 type service struct {
@@ -101,5 +102,40 @@ func (s *service) VerifyUser(req VerifyUserRequest)(*VerifyUserResponse,error){
 		Message: "User verified successfully",
 	}, nil
 	
+}
+
+func (s *service) ResendOtp(req ResendOTPRequest)(*ResendOTPResponse,error){
+
+	user,err:=s.repo.FindByEmail(req.Email)
+	if err!= nil {
+		return nil, apierror.New("Failed to find user", http.StatusInternalServerError)
+	}
+	if user == nil {
+		return nil, apierror.New("User not found", http.StatusNotFound)
+	}
+
+	if user.VerifiedStatus{
+		return nil, apierror.New("User already verified", http.StatusConflict)
+	}
+
+	// Check if the user can resend OTP
+	canResend := redis.CanResendOTP(user.Email, 30*time.Second)
+	if !canResend {
+		return nil, apierror.New("Please wait before requesting a new OTP", http.StatusTooManyRequests)
+	}
+
+	otp:=otp.GenerateOTP()
+	err=redis.StoreOTP(user.Email, otp, 5*time.Minute)
+	if err != nil {
+		return nil, apierror.New("Failed to store OTP", http.StatusInternalServerError)
+	}
+
+	email:=email.NewOnBoardingEmail(user.Name, otp)
+	go smtp.SendEmail(user.Email, email.Subject, email.Body)
+	return &ResendOTPResponse{
+		Status:  "success",
+		Message: "A new OTP has been sent to your email",
+	}, nil
+
 }
 
