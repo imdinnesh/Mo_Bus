@@ -15,6 +15,7 @@ import (
 
 type Service interface {
 	Register(req SignUpRequest) (*SignUpResponse, error)
+	VerifyUser(req VerifyUserRequest) (*VerifyUserResponse, error)
 }
 
 type service struct {
@@ -63,3 +64,37 @@ func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
 	}, nil
 
 }
+
+func (s *service) VerifyUser(req VerifyUserRequest)(*VerifyUserResponse,error){
+	varified,err:=redis.VerifyOTP(req.Email,req.OTP)
+	if err != nil {
+		return nil, apierror.New("Invalid or expired OTP", http.StatusBadRequest)
+	}
+
+	if !varified {
+		return nil, apierror.New("Invalid or expired OTP", http.StatusBadRequest)
+	}
+
+	user,err:=s.repo.FindByEmail(req.Email)
+	if err != nil {
+		return nil, apierror.New("Failed to find user", http.StatusInternalServerError)
+	}
+
+	if user == nil {
+		return nil, apierror.New("User not found", http.StatusNotFound)
+	}
+
+	user.VerifiedStatus=true
+	err=s.repo.Update(user)
+
+	if err != nil {
+		return nil, apierror.New("Failed to update user", http.StatusInternalServerError)
+	}
+
+	return &VerifyUserResponse{
+		Status:  "success",
+		Message: "User verified successfully",
+	}, nil
+	
+}
+

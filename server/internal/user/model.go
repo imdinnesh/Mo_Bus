@@ -1,4 +1,5 @@
 package user
+import "time"
 
 type User struct {
 	ID             uint    `gorm:"primaryKey" json:"id"`
@@ -10,4 +11,13 @@ type User struct {
 	VerifiedStatus bool    `json:"verified_status" gorm:"default:false"`
 	MobileNumber   string  `json:"mobile_number"`
 	Gender         string  `json:"gender"`
+}
+
+type RefreshToken struct {
+	ID                    uint `gorm:"primaryKey"`
+	UserID                uint `gorm:"index"`
+	User                  User `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	EncryptedRefreshToken string
+	ExpiresAt             time.Time
+	DeviceID              string
 }

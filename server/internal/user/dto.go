@@ -23,3 +23,24 @@ type SignInResponse struct {
 	AccessToken   string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+type VerifyUserRequest struct {
+	Email string `json:"email" binding:"required,email"`
+	OTP    string `json:"otp" binding:"required"`
+}
+
+type VerifyUserResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+type ResendOTPRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}
+
+type ResendOTPResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+
