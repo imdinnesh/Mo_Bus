@@ -12,4 +12,5 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	users := r.Group("/user")
     users.POST("/signup",handler.CreateUser)  
+	users.POST("/verify-email",handler.VerifyUser)
 }

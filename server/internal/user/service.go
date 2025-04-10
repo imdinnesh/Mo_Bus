@@ -66,14 +66,6 @@ func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
 }
 
 func (s *service) VerifyUser(req VerifyUserRequest)(*VerifyUserResponse,error){
-	varified,err:=redis.VerifyOTP(req.Email,req.OTP)
-	if err != nil {
-		return nil, apierror.New("Invalid or expired OTP", http.StatusBadRequest)
-	}
-
-	if !varified {
-		return nil, apierror.New("Invalid or expired OTP", http.StatusBadRequest)
-	}
 
 	user,err:=s.repo.FindByEmail(req.Email)
 	if err != nil {
@@ -84,6 +76,19 @@ func (s *service) VerifyUser(req VerifyUserRequest)(*VerifyUserResponse,error){
 		return nil, apierror.New("User not found", http.StatusNotFound)
 	}
 
+	if user.VerifiedStatus{
+		return nil, apierror.New("User already verified", http.StatusConflict)
+	}
+
+	verified,err:=redis.VerifyOTP(req.Email,req.OTP)
+	if err != nil {
+		return nil, apierror.New("Invalid or expired OTP", http.StatusBadRequest)
+	}
+
+	if !verified {
+		return nil, apierror.New("Invalid or expired OTP", http.StatusBadRequest)
+	}
+	
 	user.VerifiedStatus=true
 	err=s.repo.Update(user)
 
