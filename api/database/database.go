@@ -110,3 +110,11 @@ type QrCode struct {
 	Used      bool      `json:"used" gorm:"default:false"` // true if the QR code has been used
 	UsedAt    time.Time `json:"used_at"`
 }
+
+type Accouncements struct{
+	ID uint `gorm:"primaryKey" json:"id"`
+	Title string `json:"title"`
+	Description string `json:"description"`
+	CreatedAt time.Time `json:"created_at"`
+	Type string `json:"type"` // "general" or "emergency"
+}

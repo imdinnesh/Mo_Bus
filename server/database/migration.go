@@ -2,6 +2,7 @@ package database
 
 import (
 	"log"
+
 	"github.com/imdinnesh/mobusapi/internal/user"
 	"gorm.io/gorm"
 )
