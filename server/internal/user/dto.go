@@ -44,4 +44,11 @@ type ResendOTPResponse struct {
 	Message string `json:"message"`
 }
 
+type ProfileResposne struct{
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Balance float64 `json:"balance"`
+	Role string `json:"role"`
+}
+
 

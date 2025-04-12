@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/imdinnesh/mobusapi/config"
 	"github.com/imdinnesh/mobusapi/constants"
 	"github.com/imdinnesh/mobusapi/database"
 	"github.com/imdinnesh/mobusapi/models"
@@ -12,8 +13,8 @@ import (
 	"github.com/imdinnesh/mobusapi/redis"
 )
 
-var secretKey = []byte("secret-key")
-var refreshSecretKey = []byte("refresh-secret-key")
+var secretKey = config.Load().SecretKey
+var refreshSecretKey = config.Load().RefreshSecretKey
 
 func CreateToken(email string, id uint, deviceID string, role string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256,

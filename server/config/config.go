@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -14,9 +14,9 @@ type Config struct {
 	RedisAddr        string
 	RedisPass        string
 	ServerSalt       string
-	SecretKey        string
-	RefreshSecretKey string
 	EncryptionKey    string
+	SecretKey        []byte
+	RefreshSecretKey []byte
 }
 
 func Load() *Config {
@@ -37,9 +37,9 @@ func Load() *Config {
 		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
 		RedisPass:        getEnv("REDIS_PASSWORD", ""),
 		ServerSalt:       getEnv("SERVER_SALT", "fallback-secret"),
-		SecretKey:        getEnv("SECRET_KEY", "secret-key"),
-		RefreshSecretKey: getEnv("REFRESH_SECRET_KEY", "refresh-secret-key"),
 		EncryptionKey:    getEnv("ENCRYPTION_KEY", ""),
+		SecretKey:        []byte (getEnv("SECRET_KEY", "secret-key")),
+		RefreshSecretKey: []byte(getEnv("REFRESH_SECRET_KEY", "refresh-secret-key")),
 	}
 
 	fmt.Println("Loaded environment:", cfg.Env)

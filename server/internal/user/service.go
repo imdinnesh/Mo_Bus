@@ -19,8 +19,9 @@ import (
 type Service interface {
 	Register(req SignUpRequest) (*SignUpResponse, error)
 	VerifyUser(req VerifyUserRequest) (*VerifyUserResponse, error)
-	ResendOtp(req ResendOTPRequest)(*ResendOTPResponse,error)
+	ResendOtp(req ResendOTPRequest) (*ResendOTPResponse, error)
 	SignIn(req SignInRequest) (*SignInResponse, error)
+	Profile(userId uint) (*ProfileResposne, error)
 }
 
 type service struct {
@@ -36,8 +37,8 @@ func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: req.Password,
-        Balance:  0.0,
-        Role:     "user",
+		Balance:  0.0,
+		Role:     "user",
 	}
 
 	existingUser, err := s.repo.FindByEmail(user.Email)
@@ -45,7 +46,7 @@ func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
 		return nil, apierror.New("Failed to check user existence", http.StatusInternalServerError)
 	}
 	if existingUser != nil && existingUser.ID != 0 {
-        errorMessage:=fmt.Sprintf("User with email %s already exists", user.Email)
+		errorMessage := fmt.Sprintf("User with email %s already exists", user.Email)
 		return nil, apierror.New(errorMessage, http.StatusConflict)
 	}
 
@@ -54,14 +55,14 @@ func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
 		return nil, apierror.New("Failed to create user", http.StatusInternalServerError)
 	}
 
-    otp:=otp.GenerateOTP()
-    err=redis.StoreOTP(user.Email, otp, 5*time.Minute)
-    if err != nil {
-        return nil, apierror.New("Failed to store OTP", http.StatusInternalServerError)
-    }
+	otp := otp.GenerateOTP()
+	err = redis.StoreOTP(user.Email, otp, 5*time.Minute)
+	if err != nil {
+		return nil, apierror.New("Failed to store OTP", http.StatusInternalServerError)
+	}
 
-    email:=email.NewOnBoardingEmail(user.Name, otp)
-    go smtp.SendEmail(user.Email, email.Subject, email.Body)
+	email := email.NewOnBoardingEmail(user.Name, otp)
+	go smtp.SendEmail(user.Email, email.Subject, email.Body)
 
 	return &SignUpResponse{
 		Status:  "success",
@@ -70,9 +71,9 @@ func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
 
 }
 
-func (s *service) VerifyUser(req VerifyUserRequest)(*VerifyUserResponse,error){
+func (s *service) VerifyUser(req VerifyUserRequest) (*VerifyUserResponse, error) {
 
-	user,err:=s.repo.FindByEmail(req.Email)
+	user, err := s.repo.FindByEmail(req.Email)
 	if err != nil {
 		return nil, apierror.New("Failed to find user", http.StatusInternalServerError)
 	}
@@ -81,11 +82,11 @@ func (s *service) VerifyUser(req VerifyUserRequest)(*VerifyUserResponse,error){
 		return nil, apierror.New("User not found", http.StatusNotFound)
 	}
 
-	if user.VerifiedStatus{
+	if user.VerifiedStatus {
 		return nil, apierror.New("User already verified", http.StatusConflict)
 	}
 
-	verified,err:=redis.VerifyOTP(req.Email,req.OTP)
+	verified, err := redis.VerifyOTP(req.Email, req.OTP)
 	if err != nil {
 		return nil, apierror.New("Invalid or expired OTP", http.StatusBadRequest)
 	}
@@ -93,9 +94,9 @@ func (s *service) VerifyUser(req VerifyUserRequest)(*VerifyUserResponse,error){
 	if !verified {
 		return nil, apierror.New("Invalid or expired OTP", http.StatusBadRequest)
 	}
-	
-	user.VerifiedStatus=true
-	err=s.repo.Update(user)
+
+	user.VerifiedStatus = true
+	err = s.repo.Update(user)
 
 	if err != nil {
 		return nil, apierror.New("Failed to update user", http.StatusInternalServerError)
@@ -105,20 +106,20 @@ func (s *service) VerifyUser(req VerifyUserRequest)(*VerifyUserResponse,error){
 		Status:  "success",
 		Message: "User verified successfully",
 	}, nil
-	
+
 }
 
-func (s *service) ResendOtp(req ResendOTPRequest)(*ResendOTPResponse,error){
+func (s *service) ResendOtp(req ResendOTPRequest) (*ResendOTPResponse, error) {
 
-	user,err:=s.repo.FindByEmail(req.Email)
-	if err!= nil {
+	user, err := s.repo.FindByEmail(req.Email)
+	if err != nil {
 		return nil, apierror.New("Failed to find user", http.StatusInternalServerError)
 	}
 	if user == nil {
 		return nil, apierror.New("User not found", http.StatusNotFound)
 	}
 
-	if user.VerifiedStatus{
+	if user.VerifiedStatus {
 		return nil, apierror.New("User already verified", http.StatusConflict)
 	}
 
@@ -128,13 +129,13 @@ func (s *service) ResendOtp(req ResendOTPRequest)(*ResendOTPResponse,error){
 		return nil, apierror.New("Please wait before requesting a new OTP", http.StatusTooManyRequests)
 	}
 
-	otp:=otp.GenerateOTP()
-	err=redis.StoreOTP(user.Email, otp, 5*time.Minute)
+	otp := otp.GenerateOTP()
+	err = redis.StoreOTP(user.Email, otp, 5*time.Minute)
 	if err != nil {
 		return nil, apierror.New("Failed to store OTP", http.StatusInternalServerError)
 	}
 
-	email:=email.NewOnBoardingEmail(user.Name, otp)
+	email := email.NewOnBoardingEmail(user.Name, otp)
 	go smtp.SendEmail(user.Email, email.Subject, email.Body)
 	return &ResendOTPResponse{
 		Status:  "success",
@@ -186,3 +187,20 @@ func (s *service) SignIn(req SignInRequest) (*SignInResponse, error) {
 	}, nil
 }
 
+func (s *service) Profile(userId uint) (*ProfileResposne, error) {
+	user, err := s.repo.FindById(userId)
+	if err != nil {
+		return nil, apierror.New("Failed to find user", http.StatusInternalServerError)
+	}
+	if user == nil {
+		return nil, apierror.New("User not found", http.StatusNotFound)
+	}
+
+	return &ProfileResposne{
+		Status:  "success",
+		Message: "User profile fetched successfully",
+		Balance: user.Balance,
+		Role:    user.Role,
+	}, nil
+
+}
