@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/imdinnesh/mobusapi/models"
 	"github.com/imdinnesh/mobusapi/pkg/apierror"
 	"github.com/imdinnesh/mobusapi/pkg/crypto"
 	"github.com/imdinnesh/mobusapi/pkg/email"
@@ -31,7 +32,7 @@ func NewService(r Repository) Service {
 }
 
 func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
-	user := &User{
+	user := &models.User{
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: req.Password,
@@ -167,7 +168,7 @@ func (s *service) SignIn(req SignInRequest) (*SignInResponse, error) {
 		return nil, apierror.New("Error encrypting refresh token", http.StatusInternalServerError)
 	}
 
-	err = s.repo.SaveRefreshToken(&RefreshToken{
+	err = s.repo.SaveRefreshToken(&models.RefreshToken{
 		UserID:                user.ID,
 		EncryptedRefreshToken: encryptedToken,
 		ExpiresAt:             time.Now().Add(7 * 24 * time.Hour),
