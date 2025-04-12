@@ -3,7 +3,9 @@ package jwt
 import (
 	"fmt"
 	"time"
+
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/imdinnesh/mobusapi/constants"
 	"github.com/imdinnesh/mobusapi/database"
 	"github.com/imdinnesh/mobusapi/models"
 	"github.com/imdinnesh/mobusapi/pkg/crypto"
@@ -20,7 +22,7 @@ func CreateToken(email string, id uint, deviceID string, role string) (string, e
 			"id":        float64(id), // Store as float64 for compatibility
 			"device_id": deviceID,
 			"role":      role,                                    // Include role in token
-			"exp":       time.Now().Add(time.Minute * 30).Unix(), // 30 min expiry
+			"exp":       time.Now().Add(constants.AccessTokenExpiry).Unix(), // 30 min expiry
 		})
 
 	tokenString, err := token.SignedString(secretKey)
@@ -85,7 +87,7 @@ func CreateRefreshToken(email string, deviceID string, role string) (string, err
 			"email":     email,
 			"device_id": deviceID,
 			"role":      role,                                      // Include role
-			"exp":       time.Now().Add(time.Hour * 24 * 7).Unix(), // 7 days expiry
+			"exp":       time.Now().Add(constants.RefreshTokenExpiry).Unix(), // 7 days expiry
 		})
 
 	tokenString, err := token.SignedString(refreshSecretKey)
