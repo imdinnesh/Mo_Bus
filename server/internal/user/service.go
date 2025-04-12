@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
 	"github.com/imdinnesh/mobusapi/pkg/apierror"
+	"github.com/imdinnesh/mobusapi/pkg/crypto"
 	"github.com/imdinnesh/mobusapi/pkg/email"
+	"github.com/imdinnesh/mobusapi/pkg/jwt"
 	"github.com/imdinnesh/mobusapi/pkg/otp"
 	"github.com/imdinnesh/mobusapi/pkg/smtp"
 	"github.com/imdinnesh/mobusapi/redis"
@@ -16,6 +19,7 @@ type Service interface {
 	Register(req SignUpRequest) (*SignUpResponse, error)
 	VerifyUser(req VerifyUserRequest) (*VerifyUserResponse, error)
 	ResendOtp(req ResendOTPRequest)(*ResendOTPResponse,error)
+	SignIn(req SignInRequest) (*SignInResponse, error)
 }
 
 type service struct {
@@ -136,5 +140,48 @@ func (s *service) ResendOtp(req ResendOTPRequest)(*ResendOTPResponse,error){
 		Message: "A new OTP has been sent to your email",
 	}, nil
 
+}
+
+func (s *service) SignIn(req SignInRequest) (*SignInResponse, error) {
+
+	user, err := s.repo.FindByEmail(req.Email)
+	if err != nil {
+		return nil, apierror.New("Error fetching user", http.StatusInternalServerError)
+	}
+	if user == nil || user.Password != req.Password {
+		return nil, apierror.New("Invalid credentials", http.StatusUnauthorized)
+	}
+
+	accessToken, err := jwt.CreateToken(user.Email, user.ID, req.DeviceId, user.Role)
+	if err != nil {
+		return nil, apierror.New("Error generating access token", http.StatusInternalServerError)
+	}
+
+	refreshToken, err := jwt.CreateRefreshToken(user.Email, req.DeviceId, user.Role)
+	if err != nil {
+		return nil, apierror.New("Error generating refresh token", http.StatusInternalServerError)
+	}
+
+	encryptedToken, err := crypto.EncryptToken(refreshToken)
+	if err != nil {
+		return nil, apierror.New("Error encrypting refresh token", http.StatusInternalServerError)
+	}
+
+	err = s.repo.SaveRefreshToken(&RefreshToken{
+		UserID:                user.ID,
+		EncryptedRefreshToken: encryptedToken,
+		ExpiresAt:             time.Now().Add(7 * 24 * time.Hour),
+		DeviceID:              req.DeviceId,
+	})
+	if err != nil {
+		return nil, apierror.New("Failed to save refresh token", http.StatusInternalServerError)
+	}
+
+	return &SignInResponse{
+		Status:       "success",
+		Message:      "Signed in successfully",
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 

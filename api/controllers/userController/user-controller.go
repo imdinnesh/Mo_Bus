@@ -163,6 +163,8 @@ func VerifyEmail(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+
+
 func ResendOTP(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var request struct {

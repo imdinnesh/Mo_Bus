@@ -13,8 +13,9 @@ type SignUpResponse struct {
 }
 
 type SignInRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	DeviceId string `json:"device_id"`
 }
 
 type SignInResponse struct {

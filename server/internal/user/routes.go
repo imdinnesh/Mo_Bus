@@ -14,4 +14,5 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
     users.POST("/signup",handler.CreateUser)  
 	users.POST("/verify-email",handler.VerifyUser)
 	users.POST("/resend-otp",handler.ResendOTP)
+	users.POST("/signin",handler.SignIn)
 }

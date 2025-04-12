@@ -6,6 +6,7 @@ type Repository interface {
 	Create(user *User) error
 	FindByEmail(email string)(*User,error)
 	Update(user *User) error
+	SaveRefreshToken(token *RefreshToken) error
 }
 
 type repository struct {
@@ -31,4 +32,8 @@ func (r *repository) FindByEmail(email string) (*User, error) {
 
 func (r *repository) Update(user *User) error {
 	return r.db.Save(user).Error
+}
+
+func (r *repository) SaveRefreshToken(token *RefreshToken) error {
+	return r.db.Create(token).Error
 }
