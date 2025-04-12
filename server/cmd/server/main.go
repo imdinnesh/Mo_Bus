@@ -1,19 +1,18 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/imdinnesh/mobusapi/config"
 	"github.com/imdinnesh/mobusapi/database"
-	"github.com/imdinnesh/mobusapi/routes"
+	"github.com/imdinnesh/mobusapi/redis"
+	"github.com/imdinnesh/mobusapi/server"
 )
 
 func main(){
 	cfg:=config.Load()
 	db:=database.SetupDatabase(cfg)
-	r:=gin.Default()
-	api:=r.Group("/api/v1")
-	routes.RegisterRoutes(api,db)
-	r.Run(":"+cfg.ServerPort)
+	redis.InitRedis(cfg)
+	r := server.New(cfg,db)
+    r.Run(":" + cfg.ServerPort)
 
 
 }

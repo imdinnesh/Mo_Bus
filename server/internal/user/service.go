@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
 	"github.com/imdinnesh/mobusapi/pkg/apierror"
 	"github.com/imdinnesh/mobusapi/pkg/email"
 	"github.com/imdinnesh/mobusapi/pkg/otp"
-	"github.com/imdinnesh/mobusapi/pkg/redis"
 	"github.com/imdinnesh/mobusapi/pkg/smtp"
+	"github.com/imdinnesh/mobusapi/redis"
 	"gorm.io/gorm"
 )
 

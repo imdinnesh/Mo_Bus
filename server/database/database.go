@@ -2,6 +2,7 @@ package database
 
 import (
 	"log"
+
 	"github.com/imdinnesh/mobusapi/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -10,15 +11,18 @@ import (
 var DB *gorm.DB
 
 func SetupDatabase(cfg *config.Config) *gorm.DB {
-	
-	connStr:=cfg.DBUrl
-	db, err := gorm.Open(postgres.Open(connStr), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(cfg.DBUrl), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
+
+	// Store it globally if needed
 	DB = db
-	AutoMigrate(db)
+
+	if err := AutoMigrate(db); err != nil {
+		log.Fatalf("Failed to auto migrate: %v", err)
+	}
+
+	log.Println("Connected to database and ran migrations")
 	return db
-
 }
-
