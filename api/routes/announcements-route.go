@@ -22,6 +22,7 @@ func AnnouncementRoutes(router *gin.RouterGroup,db *gorm.DB) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
 			return
 		}
+		
 
 		if err := db.Create(&announcement).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create announcement"})
