@@ -51,4 +51,13 @@ type ProfileResposne struct{
 	Role string `json:"role"`
 }
 
+type ResetPasswordRequest struct {
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
+}
+
+type ResetPasswordResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
 

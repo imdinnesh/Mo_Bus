@@ -22,6 +22,7 @@ type Service interface {
 	ResendOtp(req ResendOTPRequest) (*ResendOTPResponse, error)
 	SignIn(req SignInRequest) (*SignInResponse, error)
 	Profile(userId uint) (*ProfileResposne, error)
+	ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPasswordResponse, error)
 }
 
 type service struct {
@@ -203,4 +204,30 @@ func (s *service) Profile(userId uint) (*ProfileResposne, error) {
 		Role:    user.Role,
 	}, nil
 
+}
+
+func (s *service) ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPasswordResponse, error) {
+	user, err := s.repo.FindById(userId)
+	if err != nil {
+		return nil, apierror.New("Failed to find user", http.StatusInternalServerError)
+	}
+	if user == nil {
+		return nil, apierror.New("User not found", http.StatusNotFound)
+	}
+	fmt.Println(user.Password)
+	fmt.Println(req.OldPassword)
+	if user.Password != req.OldPassword {
+		return nil, apierror.New("Old password is incorrect", http.StatusBadRequest)
+	}
+
+	user.Password = req.NewPassword
+	err = s.repo.Update(user)
+	if err != nil {
+		return nil, apierror.New("Failed to update password", http.StatusInternalServerError)
+	}
+
+	return &ResetPasswordResponse{
+		Status:  "success",
+		Message: "Password reset successfully",
+	}, nil
 }
