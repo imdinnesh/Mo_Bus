@@ -23,6 +23,7 @@ type Service interface {
 	SignIn(req SignInRequest) (*SignInResponse, error)
 	Profile(userId uint) (*ProfileResposne, error)
 	ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPasswordResponse, error)
+	RefreshToken(refreshToken string) (*RefreshTokenResponse, error)
 }
 
 type service struct {
@@ -214,8 +215,6 @@ func (s *service) ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPas
 	if user == nil {
 		return nil, apierror.New("User not found", http.StatusNotFound)
 	}
-	fmt.Println(user.Password)
-	fmt.Println(req.OldPassword)
 	if user.Password != req.OldPassword {
 		return nil, apierror.New("Old password is incorrect", http.StatusBadRequest)
 	}
@@ -230,4 +229,20 @@ func (s *service) ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPas
 		Status:  "success",
 		Message: "Password reset successfully",
 	}, nil
+}
+
+func (s *service) RefreshToken( refreshToken string) (*RefreshTokenResponse, error) {
+	newAccessToken,newRefreshToken,err:=jwt.RefreshAccessToken(refreshToken)
+	if err != nil {
+		return nil, apierror.New("Invalid refresh token", http.StatusUnauthorized)
+	}
+	return &RefreshTokenResponse{
+		Status:       "success",
+		Message:      "Token refreshed successfully",
+		AccessToken:  newAccessToken,
+		RefreshToken: newRefreshToken,
+	}, nil
+
+
+
 }

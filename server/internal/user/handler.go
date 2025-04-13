@@ -137,3 +137,30 @@ func (h *Handler) ResetPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+func (h *Handler) RefreshToken(ctx *gin.Context) {
+	req := RefreshTokenRequest{}
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request"})
+		return
+	}
+
+	if req.RefreshToken == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Refresh token is required"})
+		return
+	}
+
+	response, err := h.service.RefreshToken(req.RefreshToken)
+	if err != nil {
+		if apiErr, ok := err.(*apierror.APIError); ok {
+			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+

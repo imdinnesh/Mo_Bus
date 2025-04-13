@@ -61,3 +61,16 @@ type ResetPasswordResponse struct {
 	Message string `json:"message"`
 }
 
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+type RefreshTokenResponse struct {
+	Status      string `json:"status"`
+	Message     string `json:"message"`
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"refreshToken"`
+}
+
+
+
