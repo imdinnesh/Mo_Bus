@@ -72,5 +72,9 @@ type RefreshTokenResponse struct {
 	RefreshToken string `json:"refreshToken"`
 }
 
+type LogoutResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
 
 

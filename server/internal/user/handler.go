@@ -164,3 +164,21 @@ func (h *Handler) RefreshToken(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+func (h *Handler) Logout(ctx *gin.Context) {
+
+	token := ctx.GetHeader("Authorization")
+	userID := ctx.GetUint("userId")
+	deviceID := ctx.GetString("deviceId")
+	response, err := h.service.Logout(token, userID, deviceID)
+	if err != nil {
+		if apiErr, ok := err.(*apierror.APIError); ok {
+			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+

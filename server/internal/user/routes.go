@@ -19,4 +19,5 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	users.GET("/profile",middleware.AuthMiddleware(),handler.GetProfile)
 	users.PATCH("/reset-password",middleware.AuthMiddleware(),handler.ResetPassword)
 	users.POST("/refresh-token",handler.RefreshToken)
+	users.POST("/logout",middleware.AuthMiddleware(),handler.Logout)
 }

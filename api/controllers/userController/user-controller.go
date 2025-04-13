@@ -224,7 +224,7 @@ func RefreshToken(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		
+
 		newAccessToken, newRefreshToken, err := utils.RefreshAccessToken(body.RefreshToken)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -291,7 +291,6 @@ func Logout(db *gorm.DB) gin.HandlerFunc {
 			})
 			return
 		}
-
 		// Get user ID and device ID from context
 		userID := ctx.GetUint("userId")
 		deviceID := ctx.GetString("deviceId")

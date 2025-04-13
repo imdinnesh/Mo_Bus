@@ -11,6 +11,7 @@ type Repository interface {
 	Update(user *models.User) error
 	SaveRefreshToken(token *models.RefreshToken) error
 	FindById(id uint) (*models.User, error)
+	DeleteRefreshToken(token *models.RefreshToken,userId uint,deviceId string) error
 }
 
 type repository struct {
@@ -49,4 +50,13 @@ func (r *repository) FindById(id uint) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *repository) DeleteRefreshToken(token *models.RefreshToken,userId uint,deviceId string) error {
+	err := r.db.Where("user_id = ? AND device_id = ?", userId, deviceId).Delete(token).Error
+	if err != nil {
+		return err
+	}
+	return nil
+
 }

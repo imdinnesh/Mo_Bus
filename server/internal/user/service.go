@@ -24,6 +24,7 @@ type Service interface {
 	Profile(userId uint) (*ProfileResposne, error)
 	ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPasswordResponse, error)
 	RefreshToken(refreshToken string) (*RefreshTokenResponse, error)
+	Logout(token string,userID uint,deviceID string)(*LogoutResponse,error)
 }
 
 type service struct {
@@ -243,6 +244,30 @@ func (s *service) RefreshToken( refreshToken string) (*RefreshTokenResponse, err
 		RefreshToken: newRefreshToken,
 	}, nil
 
+
+
+}
+
+func (s *service) Logout(token string,userID uint,deviceID string) (*LogoutResponse, error) {
+	expiryTime, err := jwt.GetExpiryTime(token)
+	if err != nil {
+		return nil, apierror.New("Invalid token", http.StatusUnauthorized)
+	}
+	timeUntilExpiry := time.Until(expiryTime)
+	// Blacklist the token for the specific user and device
+	err = redis.BlacklistToken(userID, deviceID, token, timeUntilExpiry)
+	if err != nil {
+		return nil, apierror.New("Failed to blacklist token", http.StatusInternalServerError)
+	}
+
+	err=s.repo.DeleteRefreshToken(&models.RefreshToken{},userID,deviceID)
+	if err != nil {
+		return nil, apierror.New("Failed to delete refresh token", http.StatusInternalServerError)
+	}
+	return &LogoutResponse{
+		Status:  "success",
+		Message: "Logged out successfully",
+	}, nil
 
 
 }
