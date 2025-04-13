@@ -224,6 +224,7 @@ func RefreshToken(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
+		
 		newAccessToken, newRefreshToken, err := utils.RefreshAccessToken(body.RefreshToken)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{
