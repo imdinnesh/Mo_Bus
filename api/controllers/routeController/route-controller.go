@@ -12,7 +12,6 @@ func AddRoute(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var route database.Route
 		ctx.BindJSON(&route)
-
 		if route.RouteNumber == "" || route.RouteName == "" || route.Direction == 0 {
 			ctx.JSON(http.StatusBadRequest, gin.H{
 				"message": "Route number or name or direction is empty",

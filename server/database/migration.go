@@ -9,5 +9,8 @@ func AutoMigrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&models.User{},
 		&models.RefreshToken{},
+		&models.Route{},
+		&models.RouteStop{},
+		&models.Stop{},
 	)
 }
