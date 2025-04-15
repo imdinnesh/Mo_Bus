@@ -15,3 +15,4 @@ func ProfileRoutes(router *gin.RouterGroup, db *gorm.DB) {
 
 	profileRouter.PUT("/update",profilecontroller.UpdateData(db))
 }
+
