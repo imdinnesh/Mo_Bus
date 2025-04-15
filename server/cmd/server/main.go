@@ -7,8 +7,10 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
 	"github.com/imdinnesh/mobusapi/config"
 	"github.com/imdinnesh/mobusapi/constants"
+	"github.com/imdinnesh/mobusapi/crons"
 	"github.com/imdinnesh/mobusapi/database"
 	"github.com/imdinnesh/mobusapi/pkg/crypto"
 	"github.com/imdinnesh/mobusapi/redis"
@@ -22,10 +24,14 @@ func main() {
 		log.Fatalf("Failed to initialize crypto: %v", err)
 	}
 
+	// Initialize database and Redis
 	db := database.SetupDatabase(cfg)
 	redis.InitRedis(cfg)
 
-	// Set up router
+	// Start cron jobs
+	crons.StartCronJobs(db)
+
+	// Set up router (Gin)
 	Router := router.New(cfg, db)
 
 	// Create custom HTTP server
