@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 func AddStop(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		stop := database.Stop{}

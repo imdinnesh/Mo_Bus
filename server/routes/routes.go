@@ -5,6 +5,7 @@ import (
 	"github.com/imdinnesh/mobusapi/internal/admin"
 	"github.com/imdinnesh/mobusapi/internal/profile"
 	"github.com/imdinnesh/mobusapi/internal/routeno"
+	"github.com/imdinnesh/mobusapi/internal/stop"
 	"github.com/imdinnesh/mobusapi/internal/user"
 	"gorm.io/gorm"
 )
@@ -14,5 +15,6 @@ func RegisterRoutes(r *gin.RouterGroup,db *gorm.DB){
 	admin.RegisterRoutes(r,db)
 	profile.RegisterRoutes(r,db)
 	routeno.RegisterRoutes(r,db)
+	stop.RegisterRoutes(r,db)
 
 }
