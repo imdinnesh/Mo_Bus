@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
+
 func AddRouteStop(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		routeStop := database.RouteStop{}
