@@ -10,7 +10,7 @@ import (
 type Repository interface {
 	ValidRouteId(routeID uint) (bool, error)
 	ValidStopId(stopID uint) (bool, error)
-	CreateRouteStop(routeStop *models.RouteStop) error
+	CreateRouteStop(routeStop *AddRouteStopRequest) error
 }
 
 type repository struct {
@@ -39,8 +39,15 @@ func (r *repository) ValidStopId(stopID uint) (bool, error) {
 	return true, nil
 }
 
-func (r *repository) CreateRouteStop(routeStop *models.RouteStop) error {
-	err := r.db.Create(routeStop).Error
+func (r *repository) CreateRouteStop(routeStop *AddRouteStopRequest) error {
+
+	routeStopModel := &models.RouteStop{
+		RouteID:   routeStop.RouteId,
+		StopID:    routeStop.StopId,
+		StopIndex: routeStop.StopIndex,
+	}
+
+	err := r.db.Create(routeStopModel).Error
 	if err != nil {
 		return err
 	}
