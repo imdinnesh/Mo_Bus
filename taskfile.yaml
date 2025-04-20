@@ -1,0 +1,12 @@
+version: '3.0'
+
+env:
+  ENV: dev
+
+tasks:
+  
+  dev:server:
+    desc: "Run Go backend"
+    cmds:
+      - cd server && go run cmd/server/main.go
+    silent: true
