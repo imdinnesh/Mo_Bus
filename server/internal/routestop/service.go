@@ -7,7 +7,8 @@ import (
 
 type Service interface {
 	AddRouteStop(routeStop *AddRouteStopRequest) (*AddRouteStopResponse,error)
-	
+	UpdateRouteStop(routeStopID string,request *UpdateRouteStopRequest) (*UpdateRouteStopResponse,error)
+	DeleteRouteStop(routeStopID string) (*DeleteRouteStopResponse,error)
 }
 
 type service struct {
@@ -47,4 +48,47 @@ func (s *service) AddRouteStop(routeStop *AddRouteStopRequest) (*AddRouteStopRes
 		Message: "Route stop added successfully",
 	},nil			
 }
+
+func (s *service) UpdateRouteStop(routeStopID string,request *UpdateRouteStopRequest) (*UpdateRouteStopResponse,error) {
+	validRouteStop,err:=s.repo.ValidRouteStop(routeStopID)
+	if err!=nil{
+		return nil,apierror.New("Invalid route stop ID",http.StatusBadRequest)
+	}
+	if !validRouteStop {
+		return nil,apierror.New("Invalid route  stop ID",http.StatusBadRequest)
+	}
+
+	err=s.repo.UpdateRouteStop(routeStopID,request.StopIndex)
+	if err!=nil{
+		return nil,apierror.New("Failed to update route stop",http.StatusInternalServerError)
+	}
+	return &UpdateRouteStopResponse{
+		Status: "success",
+		Message: "Route stop updated successfully",
+	},nil
+}
+
+func (s *service) DeleteRouteStop(routeStopID string) (*DeleteRouteStopResponse,error) {
+	validStopId,err:=s.repo.ValidRouteStop(routeStopID)
+	if err!=nil{
+		return nil,apierror.New("Invalid route stop ID",http.StatusBadRequest)
+	}
+	if !validStopId {
+		return nil,apierror.New("Invalid route stop ID",http.StatusBadRequest)
+	}
+
+	err=s.repo.DeleteRouteStop(routeStopID)
+	if err!=nil{
+		return nil,apierror.New("Failed to delete route stop",http.StatusInternalServerError)
+	}
+	return &DeleteRouteStopResponse{
+		Status: "success",
+		Message: "Route stop deleted successfully",
+	},nil
+}
+
+
+
+
+
 

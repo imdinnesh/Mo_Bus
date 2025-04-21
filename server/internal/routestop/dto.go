@@ -10,3 +10,16 @@ type AddRouteStopResponse struct {
 	Message string `json:"message"`
 }
 
+type UpdateRouteStopRequest struct {
+	StopIndex uint `json:"stop_index" validate:"required"`
+}
+type UpdateRouteStopResponse struct {
+	Status string `json:"status"`
+	Message string `json:"message"`
+}
+
+type DeleteRouteStopResponse struct {
+	Status string `json:"status"`
+	Message string `json:"message"`
+}
+

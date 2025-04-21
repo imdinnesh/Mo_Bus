@@ -35,4 +35,41 @@ func (h *Handler) AddRouteStop(ctx *gin.Context) {
 
 
 }
+
+func (h *Handler) UpdateRouteStop(ctx *gin.Context) {
+	routeStopID := ctx.Param("id")
+	request := UpdateRouteStopRequest{}
+	if err := ctx.ShouldBindJSON(&request); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+		return
+	}
+
+	response, err := h.service.UpdateRouteStop(routeStopID, &request)
+	if err != nil {
+		if apiErr, ok := err.(*apierror.APIError); ok {
+			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (h *Handler) DeleteRouteStop(ctx *gin.Context) {
+	routeStopID := ctx.Param("id")
+
+	response, err := h.service.DeleteRouteStop(routeStopID)
+	if err != nil {
+		if apiErr, ok := err.(*apierror.APIError); ok {
+			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
 	

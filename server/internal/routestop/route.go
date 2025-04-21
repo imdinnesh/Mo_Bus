@@ -13,4 +13,6 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 
 	routeStops:=r.Group("/route-stop", middleware.AuthMiddleware(), middleware.AdminMiddleware())
 	routeStops.POST("/add-route-stop", handler.AddRouteStop)
+	routeStops.PUT("/update-route-stop/:id", handler.UpdateRouteStop)
+	routeStops.DELETE("/delete-route-stop/:id", handler.DeleteRouteStop)
 }
