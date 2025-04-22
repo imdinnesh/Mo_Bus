@@ -12,5 +12,8 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.Route{},
 		&models.RouteStop{},
 		&models.Stop{},
+		&models.Transaction{},
+		&models.Booking{},
+		&models.QrCode{},
 	)
 }
