@@ -56,3 +56,37 @@ type RouteStop struct {
 	Route Route `gorm:"foreignKey:RouteID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Stop  Stop  `gorm:"foreignKey:StopID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
+// Transactions Table
+type Transaction struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	UserID    uint      `json:"user_id"`
+	Amount    float64   `json:"amount"`
+	Status    string    `json:"status"` // "success" or "failed" or "pending"
+	CreatedAt time.Time `json:"created_at"`
+	Type      string    `json:"type"` // "debit" or "credit"
+	User      User      `gorm:"foreignKey:UserID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+}
+
+// Bookings Table (UPDATED with associations)
+type Booking struct {
+	ID                uint      `gorm:"primaryKey" json:"id"`
+	UserID            uint      `json:"user_id"`
+	SourceStopID      uint      `json:"source_stop_id"`
+	DestinationStopID uint      `json:"destination_stop_id"`
+	RouteID           uint      `json:"route_id"`
+	BookingDate       time.Time `json:"booking_date"`
+	Amount            float64   `json:"amount"`
+	IsGenerated       bool      `json:"is_generated" gorm:"default:false"`
+	SourceStop        Stop      `gorm:"foreignKey:SourceStopID;references:ID"`
+	DestinationStop   Stop      `gorm:"foreignKey:DestinationStopID;references:ID"`
+	Route             Route     `gorm:"foreignKey:RouteID;references:ID"`
+}
+
+// QrCode Table
+type QrCode struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	UserID    uint      `json:"user_id"`
+	BookingID uint      `json:"booking_id"`
+	Used      bool      `json:"used" gorm:"default:false"` // true if the QR code has been used
+	UsedAt    time.Time `json:"used_at"`
+}
