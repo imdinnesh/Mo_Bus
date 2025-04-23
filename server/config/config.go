@@ -17,6 +17,9 @@ type Config struct {
 	EncryptionKey    string
 	SecretKey        []byte
 	RefreshSecretKey []byte
+	GoogleClientID   string
+	GoogleClientSecret string
+	GoogleRedirectURL string
 }
 
 func Load() *Config {
@@ -40,6 +43,9 @@ func Load() *Config {
 		EncryptionKey:    getEnv("ENCRYPTION_KEY", ""),
 		SecretKey:        []byte (getEnv("SECRET_KEY", "secret-key")),
 		RefreshSecretKey: []byte(getEnv("REFRESH_SECRET_KEY", "refresh-secret-key")),
+		GoogleClientID:   getEnv("GOOGLE_CLIENT_ID", ""),
+		GoogleClientSecret: getEnv("GOOGLE_CLIENT_SECRET", ""),
+		GoogleRedirectURL: getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/api/v1/auth/google/callback"),
 	}
 
 	fmt.Println("Loaded environment:", cfg.Env)
