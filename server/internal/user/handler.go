@@ -201,6 +201,17 @@ func (h *Handler) Logout(ctx *gin.Context) {
 		return
 	}
 
+	// Clear the refresh token cookie
+    ctx.SetCookie(
+        "refresh_token",
+        "",
+        -1,    // MaxAge negative => delete cookie immediately
+        "/",
+        "",
+        true,
+        true,
+    )
+
 	ctx.JSON(http.StatusOK, response)
 }
 
