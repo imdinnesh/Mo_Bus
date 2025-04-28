@@ -99,6 +99,17 @@ func (h *Handler) SignIn(ctx *gin.Context) {
 		return
 	}
 
+	// Set refresh token in cookie
+    ctx.SetCookie(
+        "refresh_token",
+        response.RefreshToken,
+        7*24*60*60, // 7 days
+        "/",
+        "",
+        true,  // secure
+        true,  // httpOnly
+    )
+
 	ctx.JSON(http.StatusOK, response)
 }
 
@@ -160,6 +171,17 @@ func (h *Handler) RefreshToken(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 		return
 	}
+
+	// Update the refresh token cookie
+    ctx.SetCookie(
+        "refresh_token",
+        response.RefreshToken,
+        7*24*60*60,
+        "/",
+        "",
+        true,
+        true,
+    )
 
 	ctx.JSON(http.StatusOK, response)
 }
