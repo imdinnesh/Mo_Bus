@@ -8,7 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 func UpdateBalance(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id := ctx.GetUint("userId")
