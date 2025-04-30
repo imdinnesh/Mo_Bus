@@ -7,8 +7,8 @@ import (
 )
 
 type Repository interface {
-	UpdateBalance(user *models.User, amount float64) error
-	
+	FindById(id uint) (*models.User, error)
+	UpdateBalance(user *models.User, amount float64) error	
 }
 
 type repository struct {
@@ -17,6 +17,15 @@ type repository struct {
 
 func NewRepository(db *gorm.DB) Repository {
 	return &repository{db}
+}
+
+func (r *repository) FindById(id uint) (*models.User, error) {
+	user := models.User{}
+	err := r.db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }
 
 func (r *repository) UpdateBalance(user *models.User, amount float64) error {

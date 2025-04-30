@@ -1,7 +1,7 @@
 package payment
 
 type UpdateBalanceRequest struct {
-	Amount float64 `json:"amount"`
+	Amount float64 `json:"amount" binding:"required"`
 }
 
 type UpdateBalanceResponse struct {

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/imdinnesh/mobusapi/internal/admin"
 	"github.com/imdinnesh/mobusapi/internal/auth"
+	"github.com/imdinnesh/mobusapi/internal/payment"
 	"github.com/imdinnesh/mobusapi/internal/profile"
 	"github.com/imdinnesh/mobusapi/internal/routeno"
 	"github.com/imdinnesh/mobusapi/internal/routestop"
@@ -20,4 +21,5 @@ func RegisterRoutes(r *gin.RouterGroup,db *gorm.DB){
 	stop.RegisterRoutes(r,db)
 	routestop.RegisterRoutes(r,db)
 	auth.RegisterRoutes(r,db)
+	payment.RegisterRoutes(r,db)
 }
