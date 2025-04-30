@@ -14,4 +14,5 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	payments := r.Group("/payment")
 	payments.Use(middleware.AuthMiddleware())
 	payments.POST("/update-balance", handler.UpdateBalance)
+	payments.GET("/transactions", handler.GetTransactions)
 }

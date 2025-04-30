@@ -8,7 +8,8 @@ import (
 
 type Repository interface {
 	FindById(id uint) (*models.User, error)
-	UpdateBalance(user *models.User, amount float64) error	
+	UpdateBalance(user *models.User, amount float64) error
+	GetTransactions(userId uint) ([]Transactions, error)	
 }
 
 type repository struct {
@@ -54,3 +55,18 @@ func (r *repository) UpdateBalance(user *models.User, amount float64) error {
 
 }
 
+func (r *repository) GetTransactions(userId uint) ([]Transactions, error) {
+	transactions := make([]Transactions, 0)
+	err := r.db.Model(&models.Transaction{}).
+			Where("user_id = ?",userId).
+			Order("created_at DESC").
+			Select("id", "amount", "created_at", "type").
+			Limit(10).
+			Find(&transactions).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}

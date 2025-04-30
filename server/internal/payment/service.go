@@ -7,6 +7,7 @@ import (
 )
 type Service interface {
 	UpdateBalance(req *UpdateBalanceRequest,userID uint) (*UpdateBalanceResponse, error)
+	GetTransactions(userId uint) (*GetTransactionsResponse, error)
 }
 
 type service struct {
@@ -34,6 +35,17 @@ func (s *service) UpdateBalance(req *UpdateBalanceRequest,userID uint) (*UpdateB
 
 
 
+}
+
+func (s *service) GetTransactions(userId uint) (*GetTransactionsResponse, error) {
+	transactions, err := s.repo.GetTransactions(userId)
+	if err != nil {
+		return nil, apierror.New("failed to get transactions", http.StatusInternalServerError)
+	}
+
+	return &GetTransactionsResponse{
+		Transaction: transactions,
+	}, nil
 }
 
 

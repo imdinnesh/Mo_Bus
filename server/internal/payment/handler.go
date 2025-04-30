@@ -37,3 +37,18 @@ func (h *Handler) UpdateBalance(ctx *gin.Context) {
 	
 }
 
+func (h *Handler) GetTransactions(ctx *gin.Context) {
+	userId:=ctx.GetUint("userId")
+	response, err := h.service.GetTransactions(userId)
+	if err != nil {
+		if apiErr, ok := err.(*apierror.APIError); ok {
+			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
