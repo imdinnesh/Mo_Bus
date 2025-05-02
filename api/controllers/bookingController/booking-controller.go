@@ -76,6 +76,7 @@ func CreateBooking(db *gorm.DB) gin.HandlerFunc {
 			"message":    "Booking created successfully",
 			"booking_id": bookingID,
 		})
+		
 
 	}
 }
