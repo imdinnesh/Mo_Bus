@@ -30,12 +30,13 @@ func (s *service) CreateBookings(userID uint,req *CreateBookingsRequest) (*Creat
 		Amount: 10,
 	}
 
-	if err := s.repo.CreateBooking(bookings); err != nil {
-		return nil,apierror.New("failed to create booking", http.StatusInternalServerError)
+	bookingID, err := s.repo.CreateBooking(bookings)
+	if err != nil {
+		return nil, apierror.New("Failed to create booking", http.StatusInternalServerError)
 	}
 
 	return &CreateBookingsResponse{
-		BookingID: bookings.ID,
+		BookingID: bookingID,
 		Message:  "Booking created successfully",
 		Status:   "success",
 	}, nil

@@ -9,7 +9,7 @@ import (
 )
 
 type Repository interface {
-	CreateBooking(booking *models.Booking) error
+	CreateBooking(booking *models.Booking) (uint, error)
 }
 
 type repository struct {
@@ -21,12 +21,12 @@ func NewRepository(db *gorm.DB) Repository {
 }
 
 
-func (r *repository) CreateBooking(booking *models.Booking) error {
+func (r *repository) CreateBooking(booking *models.Booking)(uint, error) {
 	tx := r.db.Begin()
 	defer tx.Rollback()
 
 	if err := tx.Create(booking).Error; err != nil {
-		return err
+		return 0, err
 	}
 
 	transaction := models.Transaction{
@@ -38,17 +38,17 @@ func (r *repository) CreateBooking(booking *models.Booking) error {
 	}
 
 	if err := tx.Create(&transaction).Error; err != nil {
-		return err
+		return 0, err
 	}
 
 	user,err:=user.NewRepository(r.db).FindById(booking.UserID)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	user.Balance -= booking.Amount
 	if err := tx.Save(user).Error; err != nil {
-		return err
+		return 0, err
 	}
-	return tx.Commit().Error
+	return booking.ID, tx.Commit().Error
 }

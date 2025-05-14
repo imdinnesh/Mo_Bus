@@ -26,6 +26,7 @@ func CreateBooking(db *gorm.DB) gin.HandlerFunc {
 
 		userID := ctx.GetUint("userId")
 
+		
 		var bookingID uint
 		err := db.Transaction(func(tx *gorm.DB) error {
 			// Create booking
