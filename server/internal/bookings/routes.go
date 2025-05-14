@@ -14,5 +14,7 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	bookings := r.Group("/booking")
 	bookings.Use(middleware.AuthMiddleware())
 	bookings.POST("/create-booking",handler.CreateBookings)
+	bookings.GET("/get-bookings", handler.GetBookings)
+	bookings.GET("/get-booking/:id", handler.GetBooking)
 }
 

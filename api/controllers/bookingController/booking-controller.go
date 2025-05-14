@@ -85,7 +85,6 @@ func CreateBooking(db *gorm.DB) gin.HandlerFunc {
 func GetBookings(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userID := ctx.GetUint("userId")
-
 		type BookingResponse struct {
 			ID                  uint      `json:"id"`
 			RouteNumber         string    `json:"route_number"`
