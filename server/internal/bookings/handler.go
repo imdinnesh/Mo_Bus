@@ -67,3 +67,21 @@ func (h *Handler) GetBooking(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, booking)
 }
+
+func (h *Handler) GetBookingByQuery(ctx *gin.Context) {
+	userId := ctx.GetUint("userId")
+	bookingId:=ctx.Query("id")
+	booking, err := h.service.GetBooking(bookingId, userId)
+	if err != nil {
+		apiErr, ok := err.(*apierror.APIError)
+		if !ok {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+		ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+		return
+	}
+	ctx.JSON(http.StatusOK, booking)
+}
+
+

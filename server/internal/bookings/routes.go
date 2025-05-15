@@ -16,5 +16,6 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	bookings.POST("/create-booking",handler.CreateBookings)
 	bookings.GET("/get-bookings", handler.GetBookings)
 	bookings.GET("/get-booking/:id", handler.GetBooking)
+	bookings.GET("/get-booking-query", handler.GetBookingByQuery)
 }
 
