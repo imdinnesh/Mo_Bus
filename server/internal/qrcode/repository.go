@@ -9,7 +9,7 @@ type Repository interface {
 	FindBookingsByID(id uint) (*models.Booking, error)
 	SaveBookingStatus(booking *models.Booking) error
 	CreateQrCode(qrCode *models.QrCode) error
-	FindQrCodeByBookingID(bookingID uint) (*models.QrCode, error)
+	FindQrCodeByBookingID(bookingID string) (*models.QrCode, error)
 	SaveQrCode(qrCode *models.QrCode) error
 }
 
@@ -46,7 +46,7 @@ func (r *repository) CreateQrCode(qrCode *models.QrCode) error {
 	return nil
 }
 
-func (r *repository) FindQrCodeByBookingID(bookingID uint) (*models.QrCode, error) {
+func (r *repository) FindQrCodeByBookingID(bookingID string) (*models.QrCode, error) {
 	qrCode := models.QrCode{}
 	err := r.db.Where("booking_id = ?", bookingID).First(&qrCode).Error
 	if err != nil {
