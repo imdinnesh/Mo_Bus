@@ -15,6 +15,7 @@ import (
 func StartTrip(db *gorm.DB) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		userId := ctx.GetUint("userId")
+		
 		type StartTripRequest struct {
 			BookingID   uint `json:"booking_id"`
 			RouteID     uint `json:"route_id"`
