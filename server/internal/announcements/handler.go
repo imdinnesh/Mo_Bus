@@ -36,3 +36,17 @@ func (h *Handler) CreateAnnouncement(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+func (h *Handler) GetAnnouncements(ctx *gin.Context) {
+	announcements, err := h.service.GetAnnouncements()
+	if err != nil {
+		apiErr, ok := err.(*apierror.APIError)
+		if !ok {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+		ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+		return
+	}
+	ctx.JSON(http.StatusOK, announcements)
+}
+

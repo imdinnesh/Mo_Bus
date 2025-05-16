@@ -9,6 +9,8 @@ import (
 
 type Service interface {
 	CreateAnnouncement(req *CreateAnnouncementRequest) (*CreateAnnouncementResponse, error)
+	GetAnnouncements() ([]models.Accouncements, error)
+
 }
 
 type service struct {
@@ -35,5 +37,14 @@ func (s *service) CreateAnnouncement(req *CreateAnnouncementRequest)(*CreateAnno
 		Status:  "success",
 		Message: "Announcement created successfully",
 	}, nil
+}
+
+func (s *service) GetAnnouncements() ([]models.Accouncements, error) {
+	announcements, err := s.repo.GetAnnouncements()
+	if err != nil {
+		return nil, apierror.New("Failed to get announcements", http.StatusInternalServerError)
+	}
+
+	return announcements, nil
 }
 	

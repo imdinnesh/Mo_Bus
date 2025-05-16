@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/imdinnesh/mobusapi/internal/admin"
+	"github.com/imdinnesh/mobusapi/internal/announcements"
 	"github.com/imdinnesh/mobusapi/internal/auth"
 	"github.com/imdinnesh/mobusapi/internal/bookings"
 	"github.com/imdinnesh/mobusapi/internal/payment"
@@ -26,4 +27,5 @@ func RegisterRoutes(r *gin.RouterGroup,db *gorm.DB){
 	payment.RegisterRoutes(r,db)
 	bookings.RegisterRoutes(r,db)
 	qrcode.RegisterRoutes(r,db)
+	announcements.RegisterRoutes(r,db)
 }
