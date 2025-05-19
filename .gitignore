@@ -1,3 +1,5 @@
 .env*
 server/main
 .DS_Store
+location/mock-server/dist
+location/mock-server/node_modules

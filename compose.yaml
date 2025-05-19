@@ -52,6 +52,15 @@ services:
       - "2525:25"  # SMTP port
     networks:
       - app_network
+
+  kafka:
+    image: apache/kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    networks:
+      - app_network
+
 volumes:
   postgres_data:
     driver: local
