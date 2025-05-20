@@ -10,3 +10,15 @@ tasks:
     cmds:
       - cd server && go run cmd/server/main.go
     silent: true
+
+  dev:mock:
+    desc: "Run Node.js mock server"
+    cmds:
+      - cd location/mock-server && npm run start
+    silent: true
+  
+  dev:ingest:
+    desc: "Run Ingest Server"
+    cmds:
+      - cd location/ingest-server && go run main.go
+    silent: true

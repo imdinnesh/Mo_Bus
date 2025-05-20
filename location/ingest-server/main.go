@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"time"
+
+	"github.com/segmentio/kafka-go"
 )
 
-// GPSData represents the incoming GPS data structure
 type GPSData struct {
 	BusID     string  `json:"busId"`
 	RouteID   string  `json:"routeId"`
@@ -16,29 +20,105 @@ type GPSData struct {
 	Timestamp string  `json:"timestamp"`
 }
 
-func trackHandler(w http.ResponseWriter, r *http.Request) {
+const (
+	kafkaTopic = "gps-coordinates"
+	kafkaAddr  = "localhost:9092"
+)
+
+var kafkaWriter *kafka.Writer
+
+func createTopicIfNotExists(topic string) error {
+	conn, err := kafka.Dial("tcp", kafkaAddr)
+	if err != nil {
+		return fmt.Errorf("failed to dial Kafka: %w", err)
+	}
+	defer conn.Close()
+
+	controller, err := conn.Controller()
+	if err != nil {
+		return fmt.Errorf("failed to get controller: %w", err)
+	}
+
+	controllerConn, err := kafka.Dial("tcp", net.JoinHostPort(controller.Host, fmt.Sprintf("%d", controller.Port)))
+	if err != nil {
+		return fmt.Errorf("failed to connect to controller: %w", err)
+	}
+	defer controllerConn.Close()
+
+	topicConfigs := []kafka.TopicConfig{
+		{
+			Topic:             topic,
+			NumPartitions:     1,
+			ReplicationFactor: 1,
+		},
+	}
+
+	err = controllerConn.CreateTopics(topicConfigs...)
+	if err != nil {
+		return fmt.Errorf("failed to create topic: %w", err)
+	}
+
+	log.Printf("Kafka topic '%s' ensured.\n", topic)
+	return nil
+}
+
+func initKafkaWriter() *kafka.Writer {
+	return kafka.NewWriter(kafka.WriterConfig{
+		Brokers:          []string{kafkaAddr},
+		Topic:            kafkaTopic,
+		Balancer:         &kafka.LeastBytes{},
+		WriteTimeout:     10 * time.Second,
+		ReadTimeout:      10 * time.Second,
+	})
+}
+
+func gpsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Only POST allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
 	var data GPSData
-	err := json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
-		http.Error(w, "Invalid JSON payload", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
 		return
 	}
 
-	// Log the received data
-	log.Printf("Received GPS data: BusID=%s RouteID=%s Lat=%f Lon=%f Time=%s\n",
-		data.BusID, data.RouteID, data.Latitude, data.Longitude, data.Timestamp)
+	log.Printf("Received: %+v\n", data)
+
+	msgBytes, err := json.Marshal(data)
+	if err != nil {
+		http.Error(w, "Failed to marshal message", http.StatusInternalServerError)
+		return
+	}
+
+	err = kafkaWriter.WriteMessages(context.Background(), kafka.Message{
+		Key:   []byte(data.BusID),
+		Value: msgBytes,
+	})
+	if err != nil {
+		http.Error(w, "Failed to send to Kafka", http.StatusInternalServerError)
+		log.Println("Kafka error:", err)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("OK"))
+	w.Write([]byte("Message sent to Kafka"))
 }
 
 func main() {
-	http.HandleFunc("/location", trackHandler)
-	fmt.Println("Starting server on :3000")
-	log.Fatal(http.ListenAndServe(":3000", nil))
+	// Ensure topic exists
+	if err := createTopicIfNotExists(kafkaTopic); err != nil {
+		log.Fatalf("Failed to prepare Kafka topic: %v", err)
+	}
+
+	kafkaWriter = initKafkaWriter()
+	defer kafkaWriter.Close()
+
+	http.HandleFunc("/location", gpsHandler)
+
+	log.Println("Ingest server listening on :3000")
+	if err := http.ListenAndServe(":3000", nil); err != nil {
+		log.Fatalf("Server failed: %v", err)
+	}
 }
