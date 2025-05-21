@@ -1,5 +1,3 @@
-version: '3.0'
-
 env:
   ENV: dev
 
@@ -21,4 +19,10 @@ tasks:
     desc: "Run Ingest Server"
     cmds:
       - cd location/ingest-server && go run main.go
+    silent: true
+
+  dev:consumer:
+    desc: "Run Consumer Worker"
+    cmds:
+      - cd location/consumer-worker && go run main.go
     silent: true
