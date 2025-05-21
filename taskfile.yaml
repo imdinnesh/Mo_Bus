@@ -1,3 +1,5 @@
+version: '3.0'
+
 env:
   ENV: dev
 
@@ -25,4 +27,10 @@ tasks:
     desc: "Run Consumer Worker"
     cmds:
       - cd location/consumer-worker && go run main.go
+    silent: true
+  
+  dev:websocket:
+    desc: "Run Websocket Server"
+    cmds:
+      - cd location/Websocket && go run main.go
     silent: true

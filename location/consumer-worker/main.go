@@ -65,7 +65,7 @@ func main() {
 			continue
 		}
 
-		// Store in Redis: key `bus:<busId>`
+		// Store in Redis hash: key `bus:<busId>`
 		key := fmt.Sprintf("bus:%s", data.BusID)
 		err = redisClient.HSet(ctx, key, map[string]interface{}{
 			"routeId":   data.RouteID,
@@ -73,15 +73,28 @@ func main() {
 			"longitude": data.Longitude,
 			"timestamp": data.Timestamp,
 		}).Err()
-
 		if err != nil {
-			log.Printf("Redis error: %v", err)
+			log.Printf("Redis error (HSet): %v", err)
 			continue
 		}
 
-		// Optional: Add TTL for auto-expiry
-		redisClient.Expire(ctx, key, 5*time.Minute)
+		// Add TTL for auto-expiry
+		_ = redisClient.Expire(ctx, key, 5*time.Minute)
 
-		log.Printf("Stored %s in Redis", key)
+		// Publish to Redis channel `bus:<busId>` for WebSocket server
+		channel := fmt.Sprintf("bus:%s", data.BusID)
+		payload, err := json.Marshal(data)
+		if err != nil {
+			log.Printf("Error marshalling for Redis pubsub: %v", err)
+			continue
+		}
+
+		err = redisClient.Publish(ctx, channel, payload).Err()
+		if err != nil {
+			log.Printf("Redis publish error: %v", err)
+			continue
+		}
+
+		log.Printf("Processed and published %s to Redis", key)
 	}
 }
