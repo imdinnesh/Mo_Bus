@@ -17,6 +17,10 @@ This module handles all **location-related services** for real-time bus tracking
 
 ---
 
+## 🏗️Core Architecture
+
+![Location Architecture](../assets/location-architecture.png)
+
 ## 📌 Setup Instructions
 
 ### 🐳 Kafka Topic Setup
@@ -97,7 +101,7 @@ This module handles the following  location related things:
 The services it includes
 - [x] Mock Node.js Server 
 - [x] Ingest Server-Kafka Producer
-- [x] Woker-Kafka Consumer
+- [x] Worker-Kafka Consumer
 - [x] Redis Layer to Store the current location per Bus + Pub/Sub
 - [x] Web Socket Layer
 - [x] SSE Layer (Optional)
