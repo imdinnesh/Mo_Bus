@@ -87,7 +87,7 @@ curl -N http://localhost:4000/location-stream?busId=bus-101
 ```
 Each event looks like:
 
-```json
+```css
 data: {"busId":"bus-101","latitude":20.123,"longitude":85.123,"timestamp":"..."}
 ```
 
@@ -100,4 +100,5 @@ The services it includes
 - [x] Woker-Kafka Consumer
 - [x] Redis Layer to Store the current location per Bus + Pub/Sub
 - [x] Web Socket Layer
-- [x] SSE Layer (Optional) 
+- [x] SSE Layer (Optional)
+- [ ] Persistant Layer:A batch or streaming job to persist from Kafka or Redis 
