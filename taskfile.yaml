@@ -34,3 +34,9 @@ tasks:
     cmds:
       - cd location/Websocket && go run main.go
     silent: true
+
+  dev:sse:
+    desc: "Run SSE Server"
+    cmds:
+      - cd location/sse-server && go run main.go
+    silent: true

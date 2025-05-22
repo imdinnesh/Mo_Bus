@@ -7,7 +7,8 @@ The services it includes
 - [x] Ingest Server-Kafka Producer
 - [x] Woker-Kafka Consumer
 - [x] Redis Layer to Store the current location per Bus + Pub/Sub
-- [x] Web Socket Layer 
+- [x] Web Socket Layer
+- [x] SSE Layer (Optional) 
 
 ```bash
 docker exec -it <kafka-container-id-or-name> \
@@ -18,7 +19,12 @@ docker exec -it <kafka-container-id-or-name> \
   --replication-factor 1
 ```
 
-## ws endpoint
+## WS endpoint
 ```
 ws://localhost:4000/location?busId=bus-101
+```
+## SSE endpoint
+```
+http://localhost:4000/location-stream?busId=bus-101
+curl -N http://localhost:4000/location-stream\?busId\=bus-101
 ```
