@@ -94,6 +94,15 @@ func main() {
 			log.Printf("Redis publish error: %v", err)
 			continue
 		}
+		// Add to Redis Geo set for geospatial queries
+		_, err = redisClient.GeoAdd(ctx, "buses:geo", &redis.GeoLocation{
+			Name:      data.BusID,
+			Longitude: data.Longitude,
+			Latitude:  data.Latitude,
+		}).Result()
+		if err != nil {
+			log.Printf("Redis GEOADD error: %v", err)
+		}
 
 		log.Printf("Processed and published %s to Redis", key)
 	}
