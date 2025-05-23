@@ -49,6 +49,8 @@ Stores the current location in Redis under key bus:<busId>.
 
 Publishes the update to Redis Pub/Sub channel bus:<busId>.
 
+Stores the bus location to Redis Geospatial Set: built-in geospatial commands (GEOADD, GEORADIUS) to make radius-based queries efficient.
+
 Client Layer (WS/SSE) subscribes to real-time updates for any busId.
 
 ## 🧠 Redis Storage Schema
@@ -95,6 +97,13 @@ Each event looks like:
 data: {"busId":"bus-101","latitude":20.123,"longitude":85.123,"timestamp":"..."}
 ```
 
+### Http Endpoint
+Get the current bus in the neaby location
+
+```bash
+http://localhost:4000/buses/nearby?lat=20.308116&lng=85.846732&radius=5
+```
+
 ## TL;DR
 This module handles the following  location related things:
 
@@ -106,3 +115,4 @@ The services it includes
 - [x] Web Socket Layer
 - [x] SSE Layer (Optional)
 - [ ] Persistant Layer:A batch or streaming job to persist from Kafka or Redis 
+- [x] Http endpoint to get the nearby buses within a given radius
