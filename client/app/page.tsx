@@ -1,5 +1,6 @@
 import BusCard from "@/components/BusCard";
 import BusTicket from "@/components/BusTicket";
+import NearbyBuses from "@/components/NearbyBuses";
 import SearchBus from "@/components/Search";
 
 export default function Home() {
@@ -10,6 +11,7 @@ export default function Home() {
         <BusTicket />
         <BusCard />
       </div>
+        <NearbyBuses/>
     </div>
   );
 }

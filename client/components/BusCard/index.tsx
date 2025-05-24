@@ -5,7 +5,7 @@ import { TbTransactionRupee } from "react-icons/tb";
 export default function BusCard() {
     return (
         <div className="flex flex-col w-4/12 p-4 gap-y-4 border-2 border-gray-200 rounded-md">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-3">
                 <h2 className="font-bold">Your Bus Card</h2>
             </div>
             <div className="flex flex-row items-center gap-2">

@@ -5,7 +5,7 @@ export const PrimaryButton = ({
   children,
 }: {
   onClick: () => void;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) => {
   return (
     <Button
