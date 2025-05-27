@@ -15,6 +15,7 @@ import { useMutation } from "@tanstack/react-query"
 import { signup } from "@/api/auth"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { getDeviceId } from "@/lib/device"
 
 export function SignupForm({
     className,
@@ -39,6 +40,11 @@ export function SignupForm({
             toast.error(error.response.data.error||"Something went wrong, please try again later.");
         },
     });
+
+    const handleGoogleLogin = () => {
+      const device_id = getDeviceId();
+        window.location.href = `http://localhost:8080/api/v1/auth/google/login?device_id=${device_id}`;
+      };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -110,7 +116,9 @@ export function SignupForm({
                                 <Button type="submit" className="w-full">
                                     Signup
                                 </Button>
-                                <Button variant="outline" className="w-full">
+                                <Button
+                                onClick={handleGoogleLogin}
+                                 variant="outline" className="w-full">
                                     Signup with Google
                                 </Button>
                             </div>

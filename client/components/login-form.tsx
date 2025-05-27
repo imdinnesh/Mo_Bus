@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useMutation } from "@tanstack/react-query"
+import { useMutation} from "@tanstack/react-query"
 import { login } from "@/api/auth"
 import { getDeviceId } from "@/lib/device"
 import { toast } from "sonner"
@@ -38,14 +38,19 @@ export function LoginForm({
     },
   });
 
+  const handleGoogleLogin = () => {
+  const device_id = getDeviceId();
+    window.location.href = `http://localhost:8080/api/v1/auth/google/login?device_id=${device_id}`;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const device_id = getDeviceId();
     mutation.mutate({ ...formData, device_id });
     setFormData({ email: '', password: '' });
     router.push("/dashboard");
-
   };
+
 
 
   return (
@@ -92,7 +97,10 @@ export function LoginForm({
                 <Button type="submit" className="w-full">
                   Login
                 </Button>
-                <Button variant="outline" className="w-full">
+                <Button 
+                onClick={handleGoogleLogin}
+                variant="outline" 
+                className="w-full">
                   Login with Google
                 </Button>
               </div>

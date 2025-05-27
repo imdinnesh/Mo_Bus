@@ -22,17 +22,24 @@ func (h *Handler) GoogleLogin(c *gin.Context) {
 
 func (h *Handler) GoogleCallback(c *gin.Context) {
 	code := c.Query("code")
-	deviceID := c.Query("state") // passed as state originally
+	deviceID := c.Query("state")
 
 	if code == "" || deviceID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing code or state"})
 		return
 	}
+
 	resp, err := h.service.HandleGoogleCallback(code, deviceID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, resp)
+
+	// Set tokens in HTTP-only, Secure cookies
+	c.SetCookie("access_token", resp.AccessToken, 3600, "/", "localhost", false, true)
+	c.SetCookie("refresh_token", resp.RefreshToken, 7*24*3600, "/", "localhost", false, true)
+
+	// Redirect to frontend dashboard
+	c.Redirect(http.StatusTemporaryRedirect, "http://localhost:3000/dashboard")
 }
 
