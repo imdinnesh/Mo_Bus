@@ -17,9 +17,11 @@ func SetupDatabase(cfg *config.Config) *gorm.DB {
 
 	DB = db
 
-	if err := AutoMigrate(db); err != nil {
-		log.Fatalf("Failed to auto migrate: %v", err)
-	}
+	// [Migrations]--------
+
+	// if err := AutoMigrate(db); err != nil {
+	// 	log.Fatalf("Failed to auto migrate: %v", err)
+	// }
 
 	log.Println("Connected to database and ran migrations")
 	return db

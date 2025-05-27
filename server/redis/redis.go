@@ -13,10 +13,21 @@ var (
 )
 
 func InitRedis(cfg *config.Config) {
-	Client = redis.NewClient(&redis.Options{
-		Addr:     cfg.RedisAddr,
-		DB:       0,
-	})
+	// [Local Redis connection]--------
+
+	// Client = redis.NewClient(&redis.Options{
+	// 	Addr:     cfg.RedisAddr,
+	// 	Password: cfg.RedisPass,
+	// 	DB:       0,
+	// })
+
+	// [Connection String Redis connection]--------
+
+	opt,err:=redis.ParseURL(cfg.RedisConnectionStr)
+	if err != nil {
+		log.Fatalf("Failed to parse Redis connection string: %v", err)
+	}
+	Client = redis.NewClient(opt)
 
 	if err := Client.Ping(Ctx).Err(); err != nil {
 		log.Fatalf("Failed to connect to Redis: %v", err)

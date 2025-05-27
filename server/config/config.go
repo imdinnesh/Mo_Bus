@@ -13,6 +13,7 @@ type Config struct {
 	DBUrl            string
 	RedisAddr        string
 	RedisPass        string
+	RedisConnectionStr string
 	ServerSalt       string
 	EncryptionKey    string
 	SecretKey        []byte
@@ -25,7 +26,7 @@ type Config struct {
 func Load() *Config {
 	env := os.Getenv("ENV")
 	if env == "" {
-		env = "dev"
+		env = "stage"
 	}
 
 	// Load corresponding .env file
@@ -39,6 +40,7 @@ func Load() *Config {
 		DBUrl:            getEnv("DB_URL", ""),
 		RedisAddr:        getEnv("REDIS_ADDR", "localhost:6379"),
 		RedisPass:        getEnv("REDIS_PASSWORD", ""),
+		RedisConnectionStr: getEnv("REDIS_CONNECTION_STRING", "redis://localhost:6379"),
 		ServerSalt:       getEnv("SERVER_SALT", "fallback-secret"),
 		EncryptionKey:    getEnv("ENCRYPTION_KEY", ""),
 		SecretKey:        []byte (getEnv("SECRET_KEY", "secret-key")),
