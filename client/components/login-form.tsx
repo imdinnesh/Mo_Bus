@@ -11,6 +11,11 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useMutation } from "@tanstack/react-query"
+import { login } from "@/api/auth"
+import { getDeviceId } from "@/lib/device"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 
 export function LoginForm({
@@ -18,8 +23,29 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
 
-  const [email,setEmail]=useState("");
-  const [password,setPassword]=useState("");
+  const router = useRouter();
+  const [formData, setFormData] = useState({ email: '', password: '' });
+
+  const mutation = useMutation({
+    mutationFn: login,
+    onSuccess: (data) => {
+      toast.success(data.message||"Login successful!");
+      localStorage.setItem("accessToken", data.access_token);
+      localStorage.setItem("refreshToken", data.refresh_token);
+    },
+    onError: (error: any) => {
+      toast.error(error.response.data.error||"Login failed. Please try again.");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const device_id = getDeviceId();
+    mutation.mutate({ ...formData, device_id });
+    setFormData({ email: '', password: '' });
+    router.push("/dashboard");
+
+  };
 
 
   return (
@@ -32,7 +58,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
@@ -41,8 +67,9 @@ export function LoginForm({
                   type="email"
                   placeholder="johndoe@example.com"
                   required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  autoComplete="email"
                 />
               </div>
               <div className="grid gap-3">
@@ -56,8 +83,8 @@ export function LoginForm({
                   </a>
                 </div>
                 <Input id="password" type="password" required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   placeholder="••••••••"
                  />
               </div>
