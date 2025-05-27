@@ -11,15 +11,46 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
+import { useMutation } from "@tanstack/react-query"
+import { signup } from "@/api/auth"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 export function SignupForm({
     className,
     ...props
 }: React.ComponentProps<"div">) {
 
-    const [email, setEmail] = useState("");
-    const [name, setName] = useState("");
-    const [password, setPassword] = useState("");
+    const router = useRouter();
+
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        password: '',
+    });
+
+    const mutation = useMutation({
+        mutationFn: signup,
+        onSuccess: (data) => {
+            toast.success(data.message || "Account created successfully!");
+
+        },
+        onError: (error: any) => {
+            toast.error(error.response.data.error||"Something went wrong, please try again later.");
+        },
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        mutation.mutate(formData);
+        setFormData({
+            name: '',
+            email: '',
+            password: '',
+        });
+        router.push("/verify");  
+    };
+
 
 
     return (
@@ -32,7 +63,7 @@ export function SignupForm({
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form>
+                    <form onSubmit={handleSubmit} >
                         <div className="flex flex-col gap-6">
                             <div className="grid gap-3">
                                 <Label htmlFor="name">Name</Label>
@@ -41,8 +72,8 @@ export function SignupForm({
                                     type="text"
                                     placeholder="John Doe"
                                     required
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                 />
                             </div>
                             <div className="grid gap-3">
@@ -52,8 +83,8 @@ export function SignupForm({
                                     type="email"
                                     placeholder="johndoe@example.com"
                                     required
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 />
                             </div>
                             <div className="grid gap-3">
@@ -70,8 +101,10 @@ export function SignupForm({
                                     id="password"
                                     type="password"
                                     required
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)} />
+                                    placeholder="••••••••"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                />
                             </div>
                             <div className="flex flex-col gap-3">
                                 <Button type="submit" className="w-full">
