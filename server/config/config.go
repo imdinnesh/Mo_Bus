@@ -26,7 +26,7 @@ type Config struct {
 func Load() *Config {
 	env := os.Getenv("ENV")
 	if env == "" {
-		env = "stage"
+		env = "dev"
 	}
 
 	// Load corresponding .env file
