@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useSearchParams } from 'next/navigation'
 import type { z } from "zod"
 
 import { otpSchema } from "@/schemas/auth"
@@ -24,6 +25,8 @@ import {
   InputOTPGroup,
   InputOTPSlot
 } from "@/components/ui/input-otp"
+import { useMutation } from "@tanstack/react-query"
+import { otpverify } from "@/api/auth"
 
 interface OTPSession {
   otpSentAt: number
@@ -37,6 +40,9 @@ export function VerifyForm() {
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
+
+  const searchParams = useSearchParams()
+  const email = searchParams.get("email")
 
   const form = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
@@ -116,15 +122,33 @@ export function VerifyForm() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
+  const mutation=useMutation({
+    mutationFn:otpverify,
+    onSuccess:(data)=>{
+      toast.success(data.message || "OTP verified successfully!")
+      localStorage.removeItem("otp-session")
+    },
+    onError:(error:any)=>{
+      toast.error(error.response.data.error || "OTP verification failed. Please try again.")
+    },
+
+  })
+
   const onSubmit = (data: z.infer<typeof otpSchema>) => {
     if (timeRemaining <= 0) {
       toast.error("OTP has expired. Please request a new one.")
       return
     }
 
-    localStorage.removeItem("otp-session")
-    toast.success("OTP submitted successfully!")
-    console.log("Submitted OTP:", data.otp)
+    if (!email) {
+      toast.error("Email is required for OTP verification.")
+      return
+    }
+    mutation.mutate({
+      email:email,
+      otp:data.otp
+    })
+
   }
 
   const handleResendOTP = () => {
