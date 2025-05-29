@@ -17,6 +17,10 @@ interface OtpVerifyPayload {
     otp: string;
 }
 
+interface OtpResendPayload {
+    email: string;
+}
+
 export const signup = async (payload: SignupPayload) => {
     const response = await axiosInstance.post("/user/signup", payload);
     return response.data;
@@ -29,5 +33,10 @@ export const login = async (payload: LoginPayload) => {
 
 export const otpverify=async(payload:OtpVerifyPayload)=>{
     const response = await axiosInstance.post("/user/verify-email", payload);
+    return response.data;
+}
+
+export const otpResend = async (payload: OtpResendPayload) => {
+    const response = await axiosInstance.post("/user/resend-otp", payload);
     return response.data;
 }
