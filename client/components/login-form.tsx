@@ -32,6 +32,7 @@ export function LoginForm({
       toast.success(data.message||"Login successful!");
       localStorage.setItem("accessToken", data.access_token);
       localStorage.setItem("refreshToken", data.refresh_token);
+      router.push("/dashboard");
     },
     onError: (error: any) => {
       toast.error(error.response.data.error||"Login failed. Please try again.");
@@ -48,7 +49,7 @@ export function LoginForm({
     const device_id = getDeviceId();
     mutation.mutate({ ...formData, device_id });
     setFormData({ email: '', password: '' });
-    router.push("/dashboard");
+    
   };
 
 

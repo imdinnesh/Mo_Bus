@@ -16,6 +16,7 @@ import { signup } from "@/api/auth"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { getDeviceId } from "@/lib/device"
+import { saveOTPSession } from "@/utils/auth_utils"
 
 export function SignupForm({
     className,
@@ -34,6 +35,11 @@ export function SignupForm({
         mutationFn: signup,
         onSuccess: (data) => {
             toast.success(data.message || "Account created successfully!");
+            saveOTPSession({
+                otpSentAt:Date.now(),
+                resendCooldownStartedAt: Date.now(),
+            })
+            router.push("/verify?email=" + formData.email);
 
         },
         onError: (error: any) => {
@@ -49,12 +55,6 @@ export function SignupForm({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         mutation.mutate(formData);
-        setFormData({
-            name: '',
-            email: '',
-            password: '',
-        });
-        router.push("/verify");  
     };
 
 

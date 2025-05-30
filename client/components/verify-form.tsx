@@ -5,36 +5,28 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useSearchParams } from 'next/navigation'
 import type { z } from "zod"
-
 import { otpSchema } from "@/schemas/auth"
 import { toast } from "sonner"
 import { RefreshCw } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
+  Form, FormControl, FormDescription, FormField, FormItem,
+  FormLabel, FormMessage
 } from "@/components/ui/form"
 import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot
+  InputOTP, InputOTPGroup, InputOTPSlot
 } from "@/components/ui/input-otp"
+
 import { useMutation } from "@tanstack/react-query"
 import { otpResend, otpverify } from "@/api/auth"
 
-interface OTPSession {
-  otpSentAt: number
-  resendCooldownStartedAt?: number
-}
-
-const OTP_VALIDITY_DURATION = 5 * 60 * 1000 // 5 minutes in ms
-const RESEND_COOLDOWN_DURATION = 30 * 1000 // 30 seconds in ms
+import {
+  getOTPSession, saveOTPSession, clearOTPSession, isOTPValid,
+  isResendAllowed, formatTime, getTimeRemaining, getCooldownRemaining,
+  createOTPSession, updateCooldownInSession,
+  OTP_VALIDITY_DURATION, RESEND_COOLDOWN_DURATION,
+} from "@/utils/auth_utils"
 
 export function VerifyForm() {
   const [timeRemaining, setTimeRemaining] = useState(0)
@@ -50,134 +42,75 @@ export function VerifyForm() {
 
   const form = useForm<z.infer<typeof otpSchema>>({
     resolver: zodResolver(otpSchema),
-    defaultValues: {
-      otp: "",
-    },
+    defaultValues: { otp: "" },
   })
 
   useEffect(() => {
-    const savedSession = localStorage.getItem("otp-session")
-
-    if (savedSession) {
-      try {
-        const session: OTPSession = JSON.parse(savedSession)
-        const now = Date.now()
-
-        const otpElapsed = now - session.otpSentAt
-        const otpRemaining = Math.max(0, OTP_VALIDITY_DURATION - otpElapsed)
-        setTimeRemaining(Math.floor(otpRemaining / 1000))
-
-        if (session.resendCooldownStartedAt) {
-          const cooldownElapsed = now - session.resendCooldownStartedAt
-          const cooldownRemaining = Math.max(0, RESEND_COOLDOWN_DURATION - cooldownElapsed)
-          setResendCooldown(Math.floor(cooldownRemaining / 1000))
-        }
-      } catch (error) {
-        console.error("Error parsing OTP session:", error)
-        localStorage.removeItem("otp-session")
-      }
+    const session = getOTPSession()
+    if (session) {
+      setTimeRemaining(Math.floor(getTimeRemaining(session) / 1000))
+      setResendCooldown(Math.floor(getCooldownRemaining(session) / 1000))
     }
-
     setIsLoaded(true)
   }, [])
 
+  // OTP expiry countdown
   useEffect(() => {
     if (!isLoaded || timeRemaining <= 0) return
-
     const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
+      setTimeRemaining(prev => {
         const updated = prev - 1
-        if (updated <= 0) localStorage.removeItem("otp-session")
+        if (updated <= 0) clearOTPSession()
         return updated
       })
     }, 1000)
-
     return () => clearInterval(timer)
   }, [timeRemaining, isLoaded])
 
+  // Resend cooldown countdown
   useEffect(() => {
     if (!isLoaded || resendCooldown <= 0) return
-
     const timer = setInterval(() => {
-      setResendCooldown((prev) => {
+      setResendCooldown(prev => {
         const updated = prev - 1
-        if (updated <= 0) {
-          const savedSession = localStorage.getItem("otp-session")
-          if (savedSession) {
-            try {
-              const session: OTPSession = JSON.parse(savedSession)
-              delete session.resendCooldownStartedAt
-              localStorage.setItem("otp-session", JSON.stringify(session))
-            } catch (error) {
-              console.error("Error updating session:", error)
-            }
-          }
-        }
+        if (updated <= 0) updateCooldownInSession()
         return updated
       })
     }, 1000)
-
     return () => clearInterval(timer)
   }, [resendCooldown, isLoaded])
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
-  }
-
-  const mutation=useMutation({
-    mutationFn:otpverify,
-    onSuccess:(data)=>{
+  const verifyMutation = useMutation({
+    mutationFn: otpverify,
+    onSuccess: (data) => {
       toast.success(data.message || "OTP verified successfully!")
-      localStorage.removeItem("otp-session")
+      clearOTPSession()
     },
-    onError:(error:any)=>{
-      toast.error(error.response.data.error || "OTP verification failed. Please try again.")
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || "OTP verification failed. Please try again.")
     },
-
   })
 
-  const resendMutation=useMutation({
-    mutationFn:otpResend,
-    onSuccess:(data)=>{
+  const resendMutation = useMutation({
+    mutationFn: otpResend,
+    onSuccess: (data) => {
       handleResendOTP()
       toast.success(data.message || "OTP resent successfully!")
     },
-    onError:(error:any)=>{
-      toast.error(error.response.data.error || "Failed to resend OTP. Please try again.")
-    }
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || "Failed to resend OTP. Please try again.")
+    },
   })
 
-
   const handleResendOTP = () => {
-    const now = Date.now()
-
-    const session: OTPSession = {
-      otpSentAt: now,
-      resendCooldownStartedAt: now,
-    }
-
-    localStorage.setItem("otp-session", JSON.stringify(session))
+    createOTPSession()
     setTimeRemaining(OTP_VALIDITY_DURATION / 1000)
     setResendCooldown(RESEND_COOLDOWN_DURATION / 1000)
     form.reset()
-    resendMutation.mutate({
-      email:email
-    })
   }
 
   const startNewOTPSession = () => {
-    const now = Date.now()
-
-    const session: OTPSession = {
-      otpSentAt: now,
-    }
-
-    localStorage.setItem("otp-session", JSON.stringify(session))
-    setTimeRemaining(OTP_VALIDITY_DURATION / 1000)
-
-    toast.success("OTP sent to your email")
+    resendMutation.mutate({ email })
   }
 
   const onSubmit = (data: z.infer<typeof otpSchema>) => {
@@ -185,23 +118,10 @@ export function VerifyForm() {
       toast.error("OTP has expired. Please request a new one.")
       return
     }
-
-    if (!email) {
-      toast.error("Email is required for OTP verification.")
-      return
-    }
-    mutation.mutate({
-      email:email,
-      otp:data.otp
-    })
-
+    verifyMutation.mutate({ email, otp: data.otp })
   }
 
-
-
-  if (!isLoaded) {
-    return <div className="w-2/3">Loading...</div>
-  }
+  if (!isLoaded) return <div className="w-2/3">Loading...</div>
 
   if (timeRemaining <= 0) {
     return (
@@ -256,7 +176,7 @@ export function VerifyForm() {
           <Button
             type="button"
             variant="outline"
-            onClick={handleResendOTP}
+            onClick={() => resendMutation.mutate({ email })}
             disabled={resendCooldown > 0}
             className="flex items-center gap-2"
           >
