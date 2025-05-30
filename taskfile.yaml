@@ -40,3 +40,9 @@ tasks:
     cmds:
       - cd location/sse-server && go run main.go
     silent: true
+
+  dev:client:
+    desc: "Run Next Client"
+    cmds:
+      - cd client && npm run dev
+    silent: true

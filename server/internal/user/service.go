@@ -22,9 +22,9 @@ type Service interface {
 	ResendOtp(req ResendOTPRequest) (*ResendOTPResponse, error)
 	SignIn(req SignInRequest) (*SignInResponse, error)
 	Profile(userId uint) (*ProfileResposne, error)
-	ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPasswordResponse, error)
+	ResetPassword(userId uint, req ResetPasswordRequest) (*ResetPasswordResponse, error)
 	RefreshToken(refreshToken string) (*RefreshTokenResponse, error)
-	Logout(token string,userID uint,deviceID string)(*LogoutResponse,error)
+	Logout(token string, userID uint, deviceID string) (*LogoutResponse, error)
 }
 
 type service struct {
@@ -48,6 +48,12 @@ func (s *service) Register(req SignUpRequest) (*SignUpResponse, error) {
 	if err != nil && err != gorm.ErrRecordNotFound {
 		return nil, apierror.New("Failed to check user existence", http.StatusInternalServerError)
 	}
+
+	if existingUser!=nil && !existingUser.VerifiedStatus{
+		return nil,apierror.New("User not verified.Please Verify your account", http.StatusForbidden)
+	}
+
+
 	if existingUser != nil && existingUser.ID != 0 {
 		errorMessage := fmt.Sprintf("User with email %s already exists", user.Email)
 		return nil, apierror.New(errorMessage, http.StatusConflict)
@@ -208,7 +214,7 @@ func (s *service) Profile(userId uint) (*ProfileResposne, error) {
 
 }
 
-func (s *service) ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPasswordResponse, error) {
+func (s *service) ResetPassword(userId uint, req ResetPasswordRequest) (*ResetPasswordResponse, error) {
 	user, err := s.repo.FindById(userId)
 	if err != nil {
 		return nil, apierror.New("Failed to find user", http.StatusInternalServerError)
@@ -232,8 +238,8 @@ func (s *service) ResetPassword(userId uint,req ResetPasswordRequest) (*ResetPas
 	}, nil
 }
 
-func (s *service) RefreshToken( refreshToken string) (*RefreshTokenResponse, error) {
-	newAccessToken,newRefreshToken,err:=jwt.RefreshAccessToken(refreshToken)
+func (s *service) RefreshToken(refreshToken string) (*RefreshTokenResponse, error) {
+	newAccessToken, newRefreshToken, err := jwt.RefreshAccessToken(refreshToken)
 	if err != nil {
 		return nil, apierror.New("Invalid refresh token", http.StatusUnauthorized)
 	}
@@ -244,11 +250,9 @@ func (s *service) RefreshToken( refreshToken string) (*RefreshTokenResponse, err
 		RefreshToken: newRefreshToken,
 	}, nil
 
-
-
 }
 
-func (s *service) Logout(token string,userID uint,deviceID string) (*LogoutResponse, error) {
+func (s *service) Logout(token string, userID uint, deviceID string) (*LogoutResponse, error) {
 	expiryTime, err := jwt.GetExpiryTime(token)
 	if err != nil {
 		return nil, apierror.New("Invalid token", http.StatusUnauthorized)
@@ -260,7 +264,7 @@ func (s *service) Logout(token string,userID uint,deviceID string) (*LogoutRespo
 		return nil, apierror.New("Failed to blacklist token", http.StatusInternalServerError)
 	}
 
-	err=s.repo.DeleteRefreshToken(&models.RefreshToken{},userID,deviceID)
+	err = s.repo.DeleteRefreshToken(&models.RefreshToken{}, userID, deviceID)
 	if err != nil {
 		return nil, apierror.New("Failed to delete refresh token", http.StatusInternalServerError)
 	}
@@ -268,6 +272,5 @@ func (s *service) Logout(token string,userID uint,deviceID string) (*LogoutRespo
 		Status:  "success",
 		Message: "Logged out successfully",
 	}, nil
-
 
 }

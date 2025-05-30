@@ -45,7 +45,12 @@ export function SignupForm({
             })
             router.push("/verify?email=" + variables.email)
         },
-        onError: (error: any) => {
+        onError: (error: any,variables) => {
+            if (error.response.status===403){
+                toast.info(error.response.data.error || "Please verify your email first.")
+                router.push("/verify?email=" + variables.email)
+                return
+            }
             toast.error(error.response?.data?.error || "Something went wrong, please try again later.")
         },
     })
