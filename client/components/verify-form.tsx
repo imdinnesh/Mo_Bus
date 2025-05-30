@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { z } from "zod"
 import { otpSchema } from "@/schemas/auth"
 import { toast } from "sonner"
@@ -32,6 +32,8 @@ export function VerifyForm() {
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [isLoaded, setIsLoaded] = useState(false)
+
+  const router=useRouter()
 
   const searchParams = useSearchParams()
   const email = searchParams.get("email")
@@ -84,6 +86,7 @@ export function VerifyForm() {
     mutationFn: otpverify,
     onSuccess: (data) => {
       toast.success(data.message || "OTP verified successfully!")
+      router.push("/dashboard")
       clearOTPSession()
     },
     onError: (error: any) => {

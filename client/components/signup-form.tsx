@@ -1,4 +1,5 @@
 "use client"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,7 +11,9 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { signupSchema, SignupFormValues } from "@/schemas/auth"
 import { useMutation } from "@tanstack/react-query"
 import { signup } from "@/api/auth"
 import { toast } from "sonner"
@@ -22,42 +25,39 @@ export function SignupForm({
     className,
     ...props
 }: React.ComponentProps<"div">) {
+    const router = useRouter()
 
-    const router = useRouter();
-
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        password: '',
-    });
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<SignupFormValues>({
+        resolver: zodResolver(signupSchema),
+    })
 
     const mutation = useMutation({
         mutationFn: signup,
-        onSuccess: (data) => {
-            toast.success(data.message || "Account created successfully!");
+        onSuccess: (data, variables) => {
+            toast.success(data.message || "Account created successfully!")
             saveOTPSession({
-                otpSentAt:Date.now(),
+                otpSentAt: Date.now(),
                 resendCooldownStartedAt: Date.now(),
             })
-            router.push("/verify?email=" + formData.email);
-
+            router.push("/verify?email=" + variables.email)
         },
         onError: (error: any) => {
-            toast.error(error.response.data.error||"Something went wrong, please try again later.");
+            toast.error(error.response?.data?.error || "Something went wrong, please try again later.")
         },
-    });
+    })
+
+    const onSubmit = (data: SignupFormValues) => {
+        mutation.mutate(data)
+    }
 
     const handleGoogleLogin = () => {
-      const device_id = getDeviceId();
-        window.location.href = `http://localhost:8080/api/v1/auth/google/login?device_id=${device_id}`;
-      };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        mutation.mutate(formData);
-    };
-
-
+        const device_id = getDeviceId()
+        window.location.href = `http://localhost:8080/api/v1/auth/google/login?device_id=${device_id}`
+    }
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -65,22 +65,22 @@ export function SignupForm({
                 <CardHeader>
                     <CardTitle>Create your account</CardTitle>
                     <CardDescription>
-                        Enter your email below to create to your account
+                        Enter your email below to create your account
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleSubmit} >
+                    <form onSubmit={handleSubmit(onSubmit)}>
                         <div className="flex flex-col gap-6">
                             <div className="grid gap-3">
                                 <Label htmlFor="name">Name</Label>
                                 <Input
                                     id="name"
-                                    type="text"
                                     placeholder="John Doe"
-                                    required
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    {...register("name")}
                                 />
+                                {errors.name && (
+                                    <p className="text-sm text-red-500">{errors.name.message}</p>
+                                )}
                             </div>
                             <div className="grid gap-3">
                                 <Label htmlFor="email">Email</Label>
@@ -88,10 +88,11 @@ export function SignupForm({
                                     id="email"
                                     type="email"
                                     placeholder="johndoe@example.com"
-                                    required
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    {...register("email")}
                                 />
+                                {errors.email && (
+                                    <p className="text-sm text-red-500">{errors.email.message}</p>
+                                )}
                             </div>
                             <div className="grid gap-3">
                                 <div className="flex items-center">
@@ -106,25 +107,24 @@ export function SignupForm({
                                 <Input
                                     id="password"
                                     type="password"
-                                    required
                                     placeholder="••••••••"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    {...register("password")}
                                 />
+                                {errors.password && (
+                                    <p className="text-sm text-red-500">{errors.password.message}</p>
+                                )}
                             </div>
                             <div className="flex flex-col gap-3">
-                                <Button type="submit" className="w-full">
-                                    Signup
+                                <Button type="submit" className="w-full" disabled={mutation.isPending}>
+                                    {mutation.isPending ? "Signing up..." : "Signup"}
                                 </Button>
-                                <Button
-                                onClick={handleGoogleLogin}
-                                 variant="outline" className="w-full">
+                                <Button onClick={handleGoogleLogin} variant="outline" className="w-full">
                                     Signup with Google
                                 </Button>
                             </div>
                         </div>
                         <div className="mt-4 text-center text-sm">
-                            Don&apos;t have an account?{" "}
+                            Already have an account?{" "}
                             <a href="/login" className="underline underline-offset-4">
                                 Sign in
                             </a>

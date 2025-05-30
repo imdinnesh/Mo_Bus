@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -11,48 +11,51 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useMutation} from "@tanstack/react-query"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { loginSchema, LoginFormValues } from "@/schemas/auth"
+import { useMutation } from "@tanstack/react-query"
 import { login } from "@/api/auth"
 import { getDeviceId } from "@/lib/device"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
-
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter()
 
-  const router = useRouter();
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  })
 
   const mutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
-      toast.success(data.message||"Login successful!");
-      localStorage.setItem("accessToken", data.access_token);
-      localStorage.setItem("refreshToken", data.refresh_token);
-      router.push("/dashboard");
+      toast.success(data.message || "Login successful!")
+      localStorage.setItem("accessToken", data.access_token)
+      localStorage.setItem("refreshToken", data.refresh_token)
+      router.push("/dashboard")
     },
     onError: (error: any) => {
-      toast.error(error.response.data.error||"Login failed. Please try again.");
+      toast.error(error.response?.data?.error || "Login failed. Please try again.")
     },
-  });
+  })
+
+  const onSubmit = (data: LoginFormValues) => {
+    const device_id = getDeviceId()
+    mutation.mutate({ ...data, device_id })
+  }
 
   const handleGoogleLogin = () => {
-  const device_id = getDeviceId();
-    window.location.href = `http://localhost:8080/api/v1/auth/google/login?device_id=${device_id}`;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const device_id = getDeviceId();
-    mutation.mutate({ ...formData, device_id });
-    setFormData({ email: '', password: '' });
-    
-  };
-
-
+    const device_id = getDeviceId()
+    window.location.href = `http://localhost:8080/api/v1/auth/google/login?device_id=${device_id}`
+  }
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -64,7 +67,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
@@ -72,11 +75,12 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="johndoe@example.com"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  {...register("email")}
                   autoComplete="email"
                 />
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email.message}</p>
+                )}
               </div>
               <div className="grid gap-3">
                 <div className="flex items-center">
@@ -88,20 +92,21 @@ export function LoginForm({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                <Input
+                  id="password"
+                  type="password"
                   placeholder="••••••••"
-                 />
+                  {...register("password")}
+                />
+                {errors.password && (
+                  <p className="text-sm text-red-500">{errors.password.message}</p>
+                )}
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Login
+                <Button type="submit" className="w-full" disabled={mutation.isPending}>
+                  {mutation.isPending ? "Logging in..." : "Login"}
                 </Button>
-                <Button 
-                onClick={handleGoogleLogin}
-                variant="outline" 
-                className="w-full">
+                <Button onClick={handleGoogleLogin} variant="outline" className="w-full">
                   Login with Google
                 </Button>
               </div>
