@@ -1,11 +1,13 @@
 import { Stop,Route } from '../db/busDB';
+import { axiosInstance } from '@/lib/axios';
 
 export async function fetchStopsFromAPI(): Promise<Stop[]> {
-  return [
-    { id: 's1', name: 'Main Street' },
-    { id: 's2', name: 'Central Park' },
-    { id: 's3', name: 'Airport Road' },
-  ];
+  const response=await axiosInstance.get("/stop/get-stops",{
+    headers:{
+      "Authorization":`${localStorage.getItem("accessToken")}`
+    }
+  })
+  return response.data.stops;
 }
 
 export async function fetchRoutesFromAPI(): Promise<Route[]> {

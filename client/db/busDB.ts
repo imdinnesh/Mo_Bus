@@ -2,7 +2,7 @@ import Dexie from 'dexie';
 
 export interface Stop {
   id: string;
-  name: string;
+  stop_name: string;
 }
 
 export interface Route {

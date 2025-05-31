@@ -18,7 +18,7 @@ async function getStops(): Promise<Record<string, string>> {
   }
 
   const all = await busDB.stops.toArray();
-  return Object.fromEntries(all.map(s => [s.id, s.name]));
+  return Object.fromEntries(all.map(s => [s.id, s.stop_name]));
 }
 
 export function useStops() {
