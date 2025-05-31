@@ -1,12 +1,10 @@
-import Link from "next/link";
+import { SearchForm } from "@/components/search-form";
 
 export default function DashboardPage(){
     
     return (
         <div>
-            <div>
-                <Link href={"/trip?start=kiitsquare&end=infocitysquare"}>One way ticket</Link>
-            </div>
+            <SearchForm/>
         </div>
     )
 }
