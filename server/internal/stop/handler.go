@@ -75,4 +75,18 @@ func (h *Handler) DeleteStop(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+func (h *Handler) GetStops(ctx *gin.Context) {
+	response, err := h.service.GetStops()
+	if err != nil {
+		if apiErr, ok := err.(*apierror.APIError); ok {
+			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
 

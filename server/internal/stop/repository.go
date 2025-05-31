@@ -9,6 +9,7 @@ type Repository interface {
 	AddStop(stop *models.Stop) error
 	UpdateStop(id string,req *UpdateStopRequest) error
 	DeleteStop(id string,) error
+	GetStops() ([]models.Stop, error)
 }
 
 type repository struct {
@@ -39,6 +40,14 @@ func (r *repository) DeleteStop(id string) error {
 		return err
 	}
 	return r.db.Delete(stop).Error
+}
+
+func (r *repository) GetStops() ([]models.Stop, error) {
+	stops:= []models.Stop{}
+	if err := r.db.Find(&stops).Error; err != nil {
+		return nil, err
+	}
+	return stops, nil
 }
 
 

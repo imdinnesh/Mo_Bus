@@ -11,6 +11,7 @@ type Service interface {
 	AddStop(req *AddStopRequest) (*AddStopResponse, error)
 	UpdateStop(id string, req *UpdateStopRequest) (*UpdateStopResponse, error)
 	DeleteStop(id string) (*DeleteStopResponse, error)
+	GetStops() (*GetStopsResponse, error)
 }
 
 type service struct {
@@ -57,4 +58,24 @@ func (s *service) DeleteStop(id string) (*DeleteStopResponse, error) {
 		Status: "success",
 		Message: "Stop deleted successfully",
 	}, nil
-}	
+}
+
+func (s *service) GetStops() (*GetStopsResponse, error) {
+	stops, err := s.repo.GetStops()
+	if err != nil {
+		return nil, apierror.New("Failed to get stops", http.StatusInternalServerError)
+	}
+
+	response := &GetStopsResponse{
+		Stops: make([]Stop, len(stops)),
+	}
+
+	for i, stop := range stops {
+		response.Stops[i] = Stop{
+			ID:       stop.ID,
+			StopName: stop.StopName,
+		}
+	}
+
+	return response, nil
+}

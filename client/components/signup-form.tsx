@@ -19,7 +19,7 @@ import { signup } from "@/api/auth"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { getDeviceId } from "@/lib/device"
-import { saveOTPSession } from "@/utils/auth_utils"
+import { saveOTPSession } from "@/utils/auth.utils"
 
 export function SignupForm({
     className,

@@ -30,7 +30,7 @@ import {
   updateCooldownInSession,
   OTP_VALIDITY_DURATION,
   RESEND_COOLDOWN_DURATION,
-} from "@/utils/auth_utils"
+} from "@/utils/auth.utils"
 
 export function VerifyForm() {
   const [timeRemaining, setTimeRemaining] = useState(0)

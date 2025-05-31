@@ -11,8 +11,9 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	service := NewService(repo)
 	handler := NewHandler(service)
 
-	stops := r.Group("/stop",middleware.AuthMiddleware(),middleware.AdminMiddleware())
-	stops.POST("/add-stop",handler.AddStop)
-	stops.PUT("/update-stop/:id",handler.UpdateStop)
-	stops.DELETE("/delete-stop/:id",handler.DeleteStop)
+	stops := r.Group("/stop",middleware.AuthMiddleware())
+	stops.POST("/add-stop",middleware.AdminMiddleware(),handler.AddStop)
+	stops.PUT("/update-stop/:id",middleware.AdminMiddleware(),handler.UpdateStop)
+	stops.DELETE("/delete-stop/:id",middleware.AdminMiddleware(),handler.DeleteStop)
+	stops.GET("/get-stops", handler.GetStops)
 }
