@@ -7,7 +7,10 @@ export interface Stop {
 
 export interface Route {
   id: string;
-  number: string;
+  route_number: string;
+  route_name: string;
+  direction: number
+
 }
 
 class BusDB extends Dexie {

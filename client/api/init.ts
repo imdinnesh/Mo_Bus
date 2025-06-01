@@ -11,10 +11,12 @@ export async function fetchStopsFromAPI(): Promise<Stop[]> {
 }
 
 export async function fetchRoutesFromAPI(): Promise<Route[]> {
-  return [
-    { id: 'r1', number: '101A' },
-    { id: 'r2', number: 'Express 9' },
-  ];
+  const response= await axiosInstance.get("/route/get-routes",{
+    headers:{
+      "Authorization":`${localStorage.getItem("accessToken")}`
+    }
+  })
+  return response.data.routes;
 }
 
 

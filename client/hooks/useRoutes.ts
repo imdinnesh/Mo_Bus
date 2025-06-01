@@ -18,7 +18,7 @@ async function getRoutes(): Promise<Record<string, string>> {
   }
 
   const all = await busDB.routes.toArray();
-  return Object.fromEntries(all.map(r => [r.id, r.number]));
+  return Object.fromEntries(all.map(r => [r.id, r.route_number + ' - ' + r.route_name]));
 }
 
 export function useRoutes() {
