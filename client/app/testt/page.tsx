@@ -1,6 +1,6 @@
 "use client";
-import { useStops } from '@/queries/useStops';
-import { useRoutes } from '@/queries/useRoutes';
+import { useStops } from '@/hooks/useStops';
+import { useRoutes } from '@/hooks/useRoutes';
 
 export default function TetsPage() {
     const { data: stops, isLoading: stopsLoading } = useStops();

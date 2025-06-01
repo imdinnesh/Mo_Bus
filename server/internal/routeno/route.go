@@ -11,11 +11,11 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	service := NewService(repo)
 	handler := NewHandler(service)
 
-	routes:= r.Group("/route",middleware.AuthMiddleware(),middleware.AdminMiddleware())
+	routes:= r.Group("/route",middleware.AuthMiddleware())
 	routes.GET("/get-routes",handler.GetRoutes)
 	routes.GET("/get-route/:id",handler.GetRouteById)
-	routes.POST("/add-route",handler.AddRoute)
-	routes.PUT("/update-route/:id",handler.UpdateRoute)
-	routes.DELETE("/delete-route/:id",handler.DeleteRoute)
+	routes.POST("/add-route",middleware.AdminMiddleware(),handler.AddRoute)
+	routes.PUT("/update-route/:id",middleware.AdminMiddleware(),handler.UpdateRoute)
+	routes.DELETE("/delete-route/:id",middleware.AdminMiddleware(),handler.DeleteRoute)
 	
 }

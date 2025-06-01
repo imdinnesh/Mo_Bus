@@ -31,7 +31,7 @@ func (r *repository) AddRoute(route *models.Route) error {
 
 func (r *repository) GetRoutes() ([]models.Route, error) {
 	routes:=[]models.Route{}
-	err:=r.db.Preload("RouteStops").Preload("RouteStops.Stop").Find(&routes).Error
+	err:=r.db.Model(&models.Route{}).Find(&routes).Error
 	if err != nil {
 		return nil, err
 	}

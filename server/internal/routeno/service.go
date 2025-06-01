@@ -8,7 +8,7 @@ import (
 )
 
 type Service interface {
-	GetRoutes() (GetRoutesResponse, error)
+	GetRoutes() (*GetRoutesResponse, error)
 	GetRouteById(id string) (GetRouteByIdResponse, error)
 	AddRoute(route *AddRouteRequest) (AddRouteResponse, error)
 	UpdateRoute(id string, route *UpdateRouteRequest) (UpdateRouteResponse,error)
@@ -24,16 +24,24 @@ func NewService(r Repository) Service {
 	return &service{repo: r}
 }
 
-func (s *service) GetRoutes() (GetRoutesResponse, error) {
+func (s *service) GetRoutes() (*GetRoutesResponse, error) {
 	routes,err:=s.repo.GetRoutes()
 	if err!=nil{
-		return GetRoutesResponse{}, apierror.New("Failed to get routes", http.StatusInternalServerError)
+		return &GetRoutesResponse{}, apierror.New("Failed to get routes", http.StatusInternalServerError)
 	}
 
-	response := GetRoutesResponse{
+	response:=&GetRoutesResponse{
+		Routes: make([]Routes, len(routes)),
 		Status:  "success",
 		Message: "Routes fetched successfully",
-		Routes:  routes,
+	}
+	for i, route := range routes {
+		response.Routes[i] = Routes{
+			ID :route.ID,
+			RouteNumber: route.RouteNumber,
+			RouteName:   route.RouteName,
+			Direction:   route.Direction,
+		}
 	}
 	return response, nil
 }

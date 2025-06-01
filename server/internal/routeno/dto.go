@@ -14,10 +14,17 @@ type AddRouteResponse struct {
 
 }
 
+type Routes struct{
+	ID uint `json:"id"`
+	RouteNumber string `json:"route_number"`
+	RouteName string `json:"route_name"`
+	Direction uint `json:"direction"` // 1 = Forward, 2 = Reverse
+}
+
 type GetRoutesResponse struct {
 	Status string `json:"status"`
 	Message string `json:"message"`
-	Routes []models.Route `json:"routes"`
+	Routes []Routes `json:"routes"`
 }
 
 type GetRouteByIdResponse struct {
