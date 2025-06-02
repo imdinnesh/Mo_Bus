@@ -1,27 +1,22 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { useTripStore } from '@/store/useTripStore';
-import { useStopName } from "@/hooks/useStops";
+import { useSearchParams } from 'next/navigation';
+import { getStopNameById, useStops } from '@/hooks/useStops';
 
 export default function TripPlannerPage() {
-    const searchParams = useSearchParams();
-    const destinationIdStore = useTripStore((state) => state.destinationId);
+  const searchParams = useSearchParams();
+  const destinationId = searchParams.get('destination');
+  
+  const { data: stops, isLoading } = useStops();
+  const destinationName = stops ? getStopNameById(stops, destinationId) : null;
 
-    // const destinationId= searchParams.get("destination");
-    const { data: stopName, isLoading, error } = useStopName(destinationIdStore);
+  if (isLoading) return <div>Loading...</div>;
 
-
-    return (
-        <div className="max-w-xl mx-auto p-6">
-            <h1 className="text-2xl font-bold mb-4">Trip Planner</h1>
-            <p className="text-lg">
-                Your current destination is:{" "}
-                <span className="font-semibold">
-                    {stopName || "Not set"}
-                </span>
-            </p>
-        </div>
-    );
+  return (
+    <div>
+      <h1>Trip Planner Page</h1>
+      <p>Destination ID: {destinationId}</p>
+      <p>Destination Name: {destinationName || 'Unknown Stop'}</p>
+    </div>
+  );
 }

@@ -1,12 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchRoutesFromAPI } from '../api/init';
 import { busDB } from '../db/busDB';
+import { isExpired } from '@/utils/time.utils';
 
-function isExpired(last: string, days = 1) {
-  const now = Date.now();
-  const then = new Date(last).getTime();
-  return now - then > days * 24 * 60 * 60 * 1000;
-}
 
 async function getRoutes(): Promise<Record<string, string>> {
   const meta = await busDB.meta.get('lastRoutesUpdated');
