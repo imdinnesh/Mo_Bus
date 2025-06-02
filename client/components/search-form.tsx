@@ -41,12 +41,22 @@ export function SearchForm() {
 
   useEffect(() => {
     const raw = localStorage.getItem("searchHistory");
-    if (raw) setHistory(JSON.parse(raw));
+    if (raw) {
+      const parsed: SearchResult[] = JSON.parse(raw);
+      const seen = new Set();
+      const unique = parsed.filter((item) => {
+        const key = `${item.type}-${item.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      setHistory(unique);
+    }
   }, []);
 
   const saveHistory = (item: SearchResult) => {
     setHistory((prev) => {
-      const withoutDup = prev.filter((r) => r.id !== item.id);
+      const withoutDup = prev.filter((r) => `${r.type}-${r.id}` !== `${item.type}-${item.id}`);
       const newHistory = [item, ...withoutDup].slice(0, 5);
       localStorage.setItem("searchHistory", JSON.stringify(newHistory));
       return newHistory;
@@ -102,7 +112,16 @@ export function SearchForm() {
       type: "route",
     }));
 
-    setResults([...routeResults, ...stopResults]);
+    const combined = [...routeResults, ...stopResults];
+    const seen = new Set<string>();
+    const unique = combined.filter((item) => {
+      const key = `${item.type}-${item.id}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    setResults(unique);
   };
 
   const debouncedSearch = useMemo(() => debounce(performSearch, 300), [stopsArray, routesArray]);
@@ -119,10 +138,10 @@ export function SearchForm() {
   const handleClick = (item: SearchResult) => {
     saveHistory(item);
     if (item.type === "route") {
-      router.push(`/route/${encodeURIComponent(item.id)}`);
+      router.push(`/route?routeId=${encodeURIComponent(item.id)}`);
     } else {
-      setDestination(item.label);
-      router.push(`/trip-planner?destination=${encodeURIComponent(item.label)}`);
+      setDestination(item.id, item.label);
+      router.push(`/trip-planner?destination=${encodeURIComponent(item.id)}`);
     }
   };
 
@@ -138,7 +157,7 @@ export function SearchForm() {
     const icon = item.type === "route" ? "🚌" : "📍";
     return (
       <Card
-        key={item.id}
+        key={`${item.type}-${item.id}`}
         onClick={() => handleClick(item)}
         className="cursor-pointer hover:bg-gray-100"
       >

@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 
 interface TripState {
-    destination: string;
-    setDestination: (destination: string) => void;
+    destinationId: string;
+    destinationLabel: string;
+    setDestination: (id: string, label: string) => void;
 }
 
 export const useTripStore = create<TripState>((set) => ({
-    destination: '',
-    setDestination: (destination) => set({ destination }),
+    destinationId: '',
+    destinationLabel: '',
+    setDestination: (id, label) => set({ destinationId: id, destinationLabel: label }),
 }));
