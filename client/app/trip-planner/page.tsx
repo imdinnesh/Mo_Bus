@@ -3,20 +3,15 @@
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTripStore } from '@/store/useTripStore';
+import { useStopName } from "@/hooks/useStops";
 
 export default function TripPlannerPage() {
-    const destinationId = useTripStore((state) => state.destinationId);
-    const destinationLabel = useTripStore((state) => state.destinationLabel);
-    const setDestination = useTripStore((state) => state.setDestination);
     const searchParams = useSearchParams();
+    const destinationIdStore = useTripStore((state) => state.destinationId);
 
-    useEffect(() => {
-        const param = searchParams.get("destination");
-        if (param && destinationId !== param) {
-            // Label is unknown from URL, use fallback
-            setDestination(param, "Unknown Stop");
-        }
-    }, [searchParams, destinationId, setDestination]);
+    // const destinationId= searchParams.get("destination");
+    const { data: stopName, isLoading, error } = useStopName(destinationIdStore);
+
 
     return (
         <div className="max-w-xl mx-auto p-6">
@@ -24,7 +19,7 @@ export default function TripPlannerPage() {
             <p className="text-lg">
                 Your current destination is:{" "}
                 <span className="font-semibold">
-                    {destinationLabel || "Not set"}
+                    {stopName || "Not set"}
                 </span>
             </p>
         </div>
