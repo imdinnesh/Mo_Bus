@@ -13,3 +13,10 @@ export const SearchSchema = z.object({
 
 export type SearchFormValues = z.infer<typeof SearchSchema>;
 
+export const SelectTripSchema = z.object({
+    routeNumber: z.string(),
+    startStop: z.string().min(1, "Start stop is required"),
+    endStop: z.string().min(1, "End stop is required"),
+})
+
+export type SelectTripFormValues = z.infer<typeof SelectTripSchema>;
