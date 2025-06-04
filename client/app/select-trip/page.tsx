@@ -39,7 +39,7 @@ export default function SelectTripPage() {
     const onSubmit = (data: SelectTripFormValues) => {
         if (!routeId) return;
         router.push(
-            `/select-seat?routeId=${routeId}&startStopId=${data.startStop}&endStopId=${data.endStop}`
+            `/select-ticket?routeId=${routeId}&startStopId=${data.startStop}&endStopId=${data.endStop}`
         );
     };
 
