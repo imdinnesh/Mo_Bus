@@ -14,3 +14,21 @@ export async function createBookings(payload: BookingPayload) {
     });
     return response.data;
 }
+
+export async function getBookings() {
+    const response = await axiosInstance.get('/booking/get-bookings', {
+        headers: {
+            "Authorization": `${localStorage.getItem("accessToken")}`
+        }
+    });
+    return response.data;
+}
+
+export async function getBookingById(bookingId: number) {
+    const response = await axiosInstance.get(`/booking/get-booking-query?id=${bookingId}`, {
+        headers: {
+            "Authorization": `${localStorage.getItem("accessToken")}`
+        }
+    });
+    return response.data;
+}
