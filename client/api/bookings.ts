@@ -1,9 +1,9 @@
 import { axiosInstance } from '@/lib/axios';
 
 interface BookingPayload {
-    route_id: string;
-    source_stop_id: string;
-    destination_stop_id: string;
+    route_id: number;
+    source_stop_id: number;
+    destination_stop_id: number;
 }
 
 export async function createBookings(payload: BookingPayload) {
