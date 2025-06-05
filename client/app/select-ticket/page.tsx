@@ -14,6 +14,8 @@ import { toast } from "sonner"
 import { MapPin, Minus, Plus, ArrowRight, Ticket } from "lucide-react"
 import { RedirectModal } from "@/components/redirect-modal"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useRouter } from "next/navigation"
+import { useBookingStore } from "@/store/useBookingStore"
 
 export default function SelectTicketPage() {
     const searchParams = useSearchParams()
@@ -28,6 +30,10 @@ export default function SelectTicketPage() {
     const [redirectModalOpen, setRedirectModalOpen] = useState(false)
     const ticketPrice = 10
 
+    const setBookings=useBookingStore(state=>state.setBooking)
+
+    const router = useRouter()
+
     const mutation = useMutation({
         mutationKey: ["createBooking"],
         mutationFn: createBookings,
@@ -39,7 +45,11 @@ export default function SelectTicketPage() {
                     onClick: () => setRedirectModalOpen(true)
                 }
             })
-            setRedirectModalOpen(true)
+            console.log(data)
+            localStorage.setItem("bookingId", data.booking_id.toString())
+            setBookings(data.booking_id,parseInt(routeId || "0"), parseInt(startStopId || "0"), parseInt(endStopId || "0"))
+            router.push('/redirect-page')
+            
         },
         onError: (error: any) => {
             console.error("Error creating booking", error)

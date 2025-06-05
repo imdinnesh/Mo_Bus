@@ -32,3 +32,22 @@ export async function getBookingById(bookingId: number) {
     });
     return response.data;
 }
+
+interface TripPayload {
+    booking_id: number;
+    route_id: number;
+    source: number;
+    destination: number;
+}
+
+
+
+export async function createTrip(payload: TripPayload) {
+    const response = await axiosInstance.post('/qrcode/start-trip', payload, {
+        headers: {
+            "Authorization": `${localStorage.getItem("accessToken")}`
+        }
+    });
+    return response.data;
+}
+
