@@ -14,7 +14,7 @@ import (
 const (
 	QR_VALIDITY_SECONDS   = 5
 	TRIP_DURATION_MINUTES = 30
-	QR_BUFFER_SECONDS     = 1000
+	QR_BUFFER_SECONDS     = 2
 	QR_SECRET             = "your_hardcoded_secret_key" // to be replaced
 )
 

@@ -51,3 +51,12 @@ export async function createTrip(payload: TripPayload) {
     return response.data;
 }
 
+export async function generateQrode(session_key: string) {
+    const response = await axiosInstance.get(`/qrcode/generate?session_key=${session_key}`, {
+        headers: {
+            "Authorization": `${localStorage.getItem("accessToken")}`
+        }
+    });
+    return response.data;
+}
+
