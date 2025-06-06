@@ -170,46 +170,56 @@ export function SearchForm() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-6">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <Input
-          {...register("query")}
-          placeholder="Search route number or stop name"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        {errors.query && <p className="text-red-500 text-sm">{errors.query.message}</p>}
-        <Button type="submit">Search</Button>
-      </form>
+    <Card className="w-full shadow-md relative"> {/* Add relative positioning */}
+      <CardContent className="p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <Input
+            {...register("query")}
+            placeholder="Search route number or stop name"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="bg-gray-100"
+          />
+          {errors.query && <p className="text-red-500 text-sm">{errors.query.message}</p>}
+          <Button type="submit" className="w-full">Search</Button>
+        </form>
 
-      {results.length > 0 && (
-        <div className="space-y-6">
-          {routes.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold text-gray-500 mb-2">Routes</h4>
-              <div className="space-y-2">{routes.map(renderWithIcon)}</div>
-            </div>
-          )}
-          {stops.length > 0 && (
-            <div>
-              <h4 className="text-sm font-semibold text-gray-500 mb-2">Stops</h4>
-              <div className="space-y-2">{stops.map(renderWithIcon)}</div>
-            </div>
-          )}
-        </div>
-      )}
+        {/* Wrap results in absolutely positioned container */}
+        {(results.length > 0 || history.length > 0) && (
+          <div className="absolute left-0 right-0 z-10 mt-2 bg-white shadow-lg rounded-b-lg max-h-96 overflow-y-auto">
+            <div className="p-4 space-y-4">
+              {results.length > 0 && (
+                <div className="space-y-4">
+                  {routes.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">Routes</h4>
+                      <div className="space-y-2">{routes.map(renderWithIcon)}</div>
+                    </div>
+                  )}
+                  {stops.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-gray-500 mb-2">Stops</h4>
+                      <div className="space-y-2">{stops.map(renderWithIcon)}</div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-      {history.length > 0 && (
-        <div className="space-y-3 mt-4">
-          <div className="flex justify-between items-center">
-            <h4 className="text-sm font-semibold text-gray-600">Recent Searches</h4>
-            <Button variant="outline" size="sm" onClick={clearHistory}>
-              Clear History
-            </Button>
+              {history.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-sm font-semibold text-gray-600">Recent Searches</h4>
+                    <Button variant="outline" size="sm" onClick={clearHistory}>
+                      Clear History
+                    </Button>
+                  </div>
+                  {history.map(renderWithIcon)}
+                </div>
+              )}
+            </div>
           </div>
-          {history.map(renderWithIcon)}
-        </div>
-      )}
-    </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
