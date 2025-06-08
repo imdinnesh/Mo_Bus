@@ -18,6 +18,7 @@ type SearchResult = {
   id: string;
   label: string;
   type: "stop" | "route";
+  route_number?: string; // for routes
 };
 
 export function SearchForm() {
@@ -26,6 +27,7 @@ export function SearchForm() {
   const [query, setQuery] = useState("");
 
   const setDestination = useTripStore((state) => state.setDestination);
+  const setRoute=useTripStore((state)=>state.setRoute); 
   const router = useRouter();
 
   const { data: stopsMap } = useStops();
@@ -110,6 +112,7 @@ export function SearchForm() {
       id: res.item.id,
       label: `Route ${res.item.route_number} - ${res.item.route_name}`,
       type: "route",
+      route_number: res.item.route_number,
     }));
 
     const combined = [...routeResults, ...stopResults];
@@ -138,10 +141,11 @@ export function SearchForm() {
   const handleClick = (item: SearchResult) => {
     saveHistory(item);
     if (item.type === "route") {
+      setRoute(item.id, item.route_number||"");
       router.push(`/route?routeId=${encodeURIComponent(item.id)}`);
     } else {
       setDestination(item.id, item.label);
-      router.push(`/trip-planner?destination=${encodeURIComponent(item.id)}`);
+      router.push(`/trip-planner?destId=${encodeURIComponent(item.id)}`);
     }
   };
 

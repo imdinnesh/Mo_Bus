@@ -4,24 +4,22 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getStopNameById, useStops } from '@/hooks/useStops';
 import { useTripStore } from '@/store/useTripStore';
+import { useTripQuerySync } from '@/hooks/useTripQuerySync';
 
 
 export default function TripPlannerPage() {
-  const searchParams = useSearchParams();
-  const destinationId = searchParams.get('destination');
+  useTripQuerySync();
 
-  const { setDestination, destinationId: storeDestinationId } = useTripStore();
+  const {
+    routeId, sourceId, destinationId,
+    routeNumber, sourceLabel, destinationLabel,
+    setRoute, setSource, setDestination,
+    reset,
+  } = useTripStore();
 
   const { data: stops, isLoading } = useStops();
   const destinationName = stops ? getStopNameById(stops, destinationId) : null;
 
-  // Update Zustand store if not already set
-  useEffect(() => {
-    if (destinationId && storeDestinationId !== destinationId && stops) {
-      const stopName = getStopNameById(stops, destinationId) || 'Unknown Stop';
-      setDestination(destinationId, stopName);
-    }
-  }, [destinationId, storeDestinationId, setDestination, stops]);
 
   if (isLoading) return <div>Loading...</div>;
 
