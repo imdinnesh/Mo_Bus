@@ -20,3 +20,10 @@ export const SelectTripSchema = z.object({
 })
 
 export type SelectTripFormValues = z.infer<typeof SelectTripSchema>;
+
+
+export const tripPlannerSchema = z.object({
+    sourceId: z.string().min(1, "Source stop is required"),
+    destinationId: z.string().min(1, "Destination stop is required"),
+})
+export type TripPlannerFormValues = z.infer<typeof tripPlannerSchema>;
