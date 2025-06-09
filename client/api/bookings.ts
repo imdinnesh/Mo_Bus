@@ -24,7 +24,7 @@ export async function getBookings() {
     return response.data;
 }
 
-export async function getBookingById(bookingId: number) {
+export async function getBookingById(bookingId: string) {
     const response = await axiosInstance.get(`/booking/get-booking-query?id=${bookingId}`, {
         headers: {
             "Authorization": `${localStorage.getItem("accessToken")}`
