@@ -8,6 +8,7 @@ import { IndianRupee, MapPin, Calendar, Route, Clock, Play } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 type Ticket = {
   id: number
@@ -20,6 +21,9 @@ type Ticket = {
 }
 
 export default function ActiveTicketPage() {
+
+  const router=useRouter();
+
   const { data, isLoading } = useQuery({
     queryKey: ["active-tickets"],
     queryFn: getBookings,
@@ -35,9 +39,8 @@ export default function ActiveTicketPage() {
   }
 
   const handleUseTicket = (ticket: Ticket) => {
-    // TODO: Implement trip generation logic
-    console.log("Generating trip for ticket:", ticket.id)
-    // This would typically call an API to start the trip
+    localStorage.setItem("bookingId", ticket.id.toString())
+    router.push('/redirect-page')
   }
 
   if (isLoading) {
