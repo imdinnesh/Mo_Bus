@@ -106,9 +106,6 @@ export function LoginForm({
                 <Button type="submit" className="w-full" disabled={mutation.isPending}>
                   {mutation.isPending ? "Logging in..." : "Login"}
                 </Button>
-                <Button onClick={handleGoogleLogin} variant="outline" className="w-full">
-                  Login with Google
-                </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">
@@ -118,6 +115,10 @@ export function LoginForm({
               </a>
             </div>
           </form>
+          <Button 
+          onClick={handleGoogleLogin} variant="outline" className="w-full mt-4">
+            Login with Google
+          </Button>
         </CardContent>
       </Card>
     </div>
