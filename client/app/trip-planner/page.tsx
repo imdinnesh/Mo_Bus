@@ -5,7 +5,7 @@ import type React from "react"
 import { useEffect, useMemo, useState, useRef } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { MapPin, Search, Loader2, X, ArrowRightLeft, Navigation } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
@@ -19,9 +19,10 @@ import { useStops } from "@/hooks/useStops"
 import { useTripStore } from "@/store/useTripStore"
 import { tripPlannerSchema } from "@/schemas/trip"
 
-import { useTripQuerySync } from "@/hooks/useTripQuerySync"
-
 import Fuse from "fuse.js"
+import { useMutation } from "@tanstack/react-query"
+import { getRoutesByStops } from "@/api/trip"
+import { toast } from "sonner"
 
 export default function TripPlannerPage() {
   const {
@@ -35,10 +36,11 @@ export default function TripPlannerPage() {
   })
 
   const router = useRouter()
-  const { data: stopsMap, isLoading } = useStops()
-  const { sourceId, destinationId, setSource, setDestination} = useTripStore()
+  const searchParams = useSearchParams()
 
-  useTripQuerySync() // Hook handles Zustand ↔ query param syncing
+  const { setSource, setDestination, setRoute } = useTripStore()
+
+  const { data: stopsMap, isLoading } = useStops()
 
   const [querySource, setQuerySource] = useState("")
   const [queryDest, setQueryDest] = useState("")
@@ -48,6 +50,7 @@ export default function TripPlannerPage() {
 
   const sourceInputRef = useRef<HTMLInputElement>(null)
   const destInputRef = useRef<HTMLInputElement>(null)
+  const [fetchedRoutes, setFetchedRoutes] = useState<any[]>([])
 
   const stopsArray = useMemo(() => {
     if (!stopsMap) return []
@@ -57,26 +60,41 @@ export default function TripPlannerPage() {
     }))
   }, [stopsMap])
 
-  const fuse = useMemo(() => new Fuse(stopsArray, { keys: ["label"], threshold: 0.3 }), [stopsArray])
+  const fuse = useMemo(
+    () =>
+      new Fuse(stopsArray, {
+        keys: ["label"],
+        threshold: 0.3,
+      }),
+    [stopsArray],
+  )
+
   const sourceResults = querySource ? fuse.search(querySource).map((r) => r.item) : []
   const destResults = queryDest ? fuse.search(queryDest).map((r) => r.item) : []
 
-  // When stopsMap is loaded, prefill fields if sourceId and destinationId exist
-  useEffect(() => {
-    if (!stopsMap) return
+  const sourceId = watch("sourceId")
+  const destinationId = watch("destinationId")
 
-    if (sourceId && stopsMap[sourceId]) {
+  // Set default values from query param
+  useEffect(() => {
+    const destId = searchParams.get("destId")
+    const sourceId = searchParams.get("sourceId")
+
+    if (destId && stopsMap?.[destId]) {
+      setValue("destinationId", destId)
+      setQueryDest(stopsMap[destId])
+    }
+
+    if (sourceId && stopsMap?.[sourceId]) {
       setValue("sourceId", sourceId)
       setQuerySource(stopsMap[sourceId])
     }
-    if (destinationId && stopsMap[destinationId]) {
-      setValue("destinationId", destinationId)
-      setQueryDest(stopsMap[destinationId])
-    }
-  }, [stopsMap, sourceId, destinationId, setValue])
+  }, [searchParams, stopsMap, setValue])
 
+  // Handle keyboard navigation for source dropdown
   const handleSourceKeyDown = (e: React.KeyboardEvent) => {
     if (!sourceDropdownOpen || sourceResults.length === 0) return
+
     if (e.key === "ArrowDown") {
       e.preventDefault()
       setActiveIndex((prev) => (prev < sourceResults.length - 1 ? prev + 1 : 0))
@@ -96,8 +114,10 @@ export default function TripPlannerPage() {
     }
   }
 
+  // Handle keyboard navigation for destination dropdown
   const handleDestKeyDown = (e: React.KeyboardEvent) => {
     if (!destDropdownOpen || destResults.length === 0) return
+
     if (e.key === "ArrowDown") {
       e.preventDefault()
       setActiveIndex((prev) => (prev < destResults.length - 1 ? prev + 1 : 0))
@@ -117,6 +137,7 @@ export default function TripPlannerPage() {
     }
   }
 
+  // Swap source and destination
   const handleSwap = () => {
     const currentSource = { id: sourceId, label: querySource }
     const currentDest = { id: destinationId, label: queryDest }
@@ -127,13 +148,31 @@ export default function TripPlannerPage() {
     setQueryDest(currentSource.label)
   }
 
+  const mutation = useMutation({
+    mutationKey: ["getRoutesByStops"],
+    mutationFn: getRoutesByStops,
+    onSuccess: (data) => {
+      console.log(data)
+      setFetchedRoutes(data.routes || [])
+      toast.success(data.message || "Routes fetched successfully!")
+    },
+    onError: (error: any) => {
+      console.error("Error fetching routes:", error)
+      toast.error(error.response?.data?.message || "Failed to fetch routes. Please try again.")
+    }
+  })
+
   const onSubmit = async (data: any) => {
     const sourceName = stopsMap?.[data.sourceId] || ""
     const destinationName = stopsMap?.[data.destinationId] || ""
 
     setSource(data.sourceId, sourceName)
     setDestination(data.destinationId, destinationName)
-    console.log("Sumitted data:",sourceId,destinationId, sourceName, destinationName)
+    mutation.mutate({
+      source_id: parseInt(data.sourceId),
+      destination_id: parseInt(data.destinationId),
+    })
+
   }
 
   if (isLoading) {
@@ -374,6 +413,26 @@ export default function TripPlannerPage() {
             )}
           </Button>
         </form>
+        {fetchedRoutes.length > 0 && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-3">Available Routes</h3>
+            <div className="space-y-4">
+              {fetchedRoutes.map((route) => (
+                <Card key={route.id} className="bg-muted/50 border border-muted p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-base font-medium">Route #{route.route_number}</h4>
+                      <p className="text-muted-foreground text-sm">{route.route_name}</p>
+                    </div>
+                    <div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
       </CardContent>
     </Card>
   )
