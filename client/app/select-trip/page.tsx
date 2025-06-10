@@ -1,319 +1,362 @@
-"use client";
+"use client"
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { useForm, Controller } from "react-hook-form";
-import { useSearchParams, useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { SelectTripFormValues, SelectTripSchema } from "@/schemas/trip";
-import { useRouteDetail } from "@/hooks/useRouteDetail";
-import { useRoutes } from "@/hooks/useRoutes";
-import { useRouteSearch } from "@/hooks/useRouteSearch";
-import { useEffect, useMemo, useState } from "react";
-import {
-    Select,
-    SelectTrigger,
-    SelectValue,
-    SelectContent,
-    SelectItem,
-} from "@/components/ui/select";
-import { Loader2, Search } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useMemo, useState, useCallback } from "react"
+import { useForm, Controller } from "react-hook-form"
+import { useSearchParams, useRouter } from "next/navigation"
+import { zodResolver } from "@hookform/resolvers/zod"
+import Fuse from "fuse.js"
+import { LogIn, MapPin } from "lucide-react";
+import { cn } from "@/lib/utils"; 
+import { SelectTripFormValues, SelectTripSchema } from "@/schemas/trip"
+import { useRouteDetail } from "@/hooks/useRouteDetail"
+import { useRoutes } from "@/hooks/useRoutes"
 
-export default function SelectTripPage() {
-    const searchParams = useSearchParams();
-    const router = useRouter();
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Separator } from "@/components/ui/separator"
+import { Loader2, Search, Route, Info, Hash, X } from "lucide-react"
 
-    const [startIndex, setStartIndex] = useState<number | null>(null);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [selectedRoute, setSelectedRoute] = useState<{
-        id: string;
-        route_number: string;
-        route_name?: string;
-    } | null>(null);
-    const [isSearchFocused, setIsSearchFocused] = useState(false);
+// --- Helper Components for a Cleaner Structure ---
 
-    const { data: routesMap, isLoading: isRoutesLoading } = useRoutes();
-    const { searchRoutes, routesArray } = useRouteSearch(routesMap || {});
-    const searchResults = useMemo(() => searchRoutes(searchQuery), [searchQuery, searchRoutes]);
+// Self-contained route search component with integrated Fuse.js logic
+function RouteSearch({
+    routes,
+    onRouteSelect,
+    selectedRoute,
+    onClear,
+    isLoading,
+}: {
+    routes: { id: string; route_number: string; route_name: string }[]
+    onRouteSelect: (route: any) => void
+    selectedRoute: { route_number: string } | null
+    onClear: () => void
+    isLoading: boolean
+}) {
+    const [query, setQuery] = useState("")
+    const [isFocused, setIsFocused] = useState(false)
 
-    const routeId = searchParams.get("routeId") ?? selectedRoute?.id ?? "";
-    const { data: routeDetails, isLoading: isRouteDetailsLoading } = useRouteDetail(routeId);
+    const fuse = useMemo(() => {
+        return new Fuse(routes, {
+            keys: ["route_number", "route_name"],
+            threshold: 0.3,
+        })
+    }, [routes])
 
-    const {
-        register,
-        handleSubmit,
-        control,
-        watch,
-        setValue,
-        formState: { errors, isSubmitting },
-    } = useForm<SelectTripFormValues>({
-        resolver: zodResolver(SelectTripSchema),
-        defaultValues: {
-            routeNumber: "",
-            startStop: "",
-            endStop: "",
-        },
-    });
+    const searchResults = useMemo(() => {
+        if (!query) return []
+        return fuse.search(query).map((r) => r.item)
+    }, [query, fuse])
 
-    const startStopId = watch("startStop");
-    const endStopId = watch("endStop");
-
-    // Update form route number when route details are loaded
-    useEffect(() => {
-        if (routeDetails) {
-            setSelectedRoute({
-                id: routeDetails.id.toString(),
-                route_number: routeDetails.route_number,
-                route_name: routeDetails.route_name,
-            });
-            setValue("routeNumber", routeDetails.route_number);
-        }
-    }, [routeDetails, setValue]);
-
-    // Update startIndex and clear endStop when startStop changes
-    useEffect(() => {
-        if (!routeDetails) return;
-        const index = routeDetails.RouteStops.find(
-            (s) => s.Stop.id.toString() === startStopId
-        )?.stop_index;
-        setStartIndex(index ?? null);
-        if (startStopId !== watch("startStop")) {
-            setValue("endStop", "");
-        }
-    }, [startStopId, routeDetails, setValue, watch]);
-
-    const stops = useMemo(() => routeDetails?.RouteStops || [], [routeDetails]);
-
-    const filteredEndStops = useMemo(() => {
-        if (startIndex === null) return [];
-        return stops.filter((s) => s.stop_index > startIndex);
-    }, [startIndex, stops]);
-
-    const onSubmit = (data: SelectTripFormValues) => {
-        if (!routeId) return;
-        router.push(
-            `/select-ticket?routeId=${routeId}&startStopId=${data.startStop}&endStopId=${data.endStop}`
-        );
-    };
-
-    const handleRouteSelect = (route: { id: string; route_number: string; route_name?: string }) => {
-        setSelectedRoute(route);
-        setSearchQuery("");
-        router.replace(`?routeId=${route.id}`);
-    };
-
-    const handleClearSelection = () => {
-        setSelectedRoute(null);
-        setValue("routeNumber", "");
-        setValue("startStop", "");
-        setValue("endStop", "");
-        router.replace("/select-trip");
-    };
-
-    const isLoading = isRouteDetailsLoading || isRoutesLoading;
+    if (selectedRoute) {
+        return (
+            <div className="flex items-center gap-2 rounded-md border bg-muted p-3">
+                <Route className="h-5 w-5 text-primary" />
+                <p className="flex-1 font-medium">Route {selectedRoute.route_number}</p>
+                <Button variant="ghost" size="sm" onClick={onClear}>
+                    <X className="mr-1 h-3 w-3" /> Change
+                </Button>
+            </div>
+        )
+    }
 
     return (
-        <div className="max-w-xl mx-auto mt-6 md:mt-10 p-4 md:p-6">
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+                id="routeSearch"
+                placeholder="Search by route number or name..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                className="pl-10 h-12 text-base"
+                autoComplete="off"
+            />
+            {isFocused && query.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 rounded-md border bg-popover text-popover-foreground shadow-md">
+                    <ScrollArea className="h-auto max-h-60">
+                        {isLoading && <Loader2 className="mx-auto my-4 h-6 w-6 animate-spin" />}
+                        {!isLoading && searchResults.length > 0 && (
+                            <ul>
+                                {searchResults.map((route) => (
+                                    <li
+                                        key={route.id}
+                                        onMouseDown={() => {
+                                            setQuery("")
+                                            onRouteSelect(route)
+                                        }}
+                                        className="px-4 py-3 cursor-pointer hover:bg-accent"
+                                    >
+                                        <div className="font-medium">Route {route.route_number}</div>
+                                        <div className="text-sm text-muted-foreground">{route.route_name}</div>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        {!isLoading && searchResults.length === 0 && (
+                            <p className="p-4 text-center text-sm text-muted-foreground">No routes found.</p>
+                        )}
+                    </ScrollArea>
+                </div>
+            )}
+        </div>
+    )
+}
+
+function RouteInfoPanel({ routeDetails }: { routeDetails: any }) {
+    if (!routeDetails) {
+        return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-2xl font-semibold text-center">
-                        Plan Your Journey
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Info className="h-5 w-5" /> Get Started
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    {/* Route Search UI */}
-                    {!routeId && (
-                        <div className="mb-6 space-y-2">
-                            <Label htmlFor="routeSearch">Find Your Route</Label>
-                            <div className="relative">
-                                <Input
-                                    id="routeSearch"
-                                    placeholder="Search by route number or name..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onFocus={() => setIsSearchFocused(true)}
-                                    onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                                    className="mt-1 pl-10"
-                                />
-                                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                            </div>
-                            {isRoutesLoading && (
-                                <div className="flex justify-center py-4">
-                                    <Loader2 className="h-5 w-5 animate-spin" />
-                                </div>
-                            )}
-                            {(isSearchFocused || searchQuery) && searchResults.length > 0 && (
-                                <ul className="mt-2 border rounded-lg shadow-sm max-h-60 overflow-auto divide-y">
-                                    {searchResults.map((route) => (
-                                        <li
-                                            key={route.id}
-                                            onClick={() => handleRouteSelect(route)}
-                                            className="px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
-                                        >
-                                            <div className="font-medium">Route {route.route_number}</div>
-                                            <div className="text-sm text-muted-foreground">{route.route_name}</div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            {searchQuery && searchResults.length === 0 && !isRoutesLoading && (
-                                <div className="mt-2 text-center text-sm text-muted-foreground py-4">
-                                    No routes found matching "{searchQuery}"
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Selected Route Info */}
-                    {selectedRoute && (
-                        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                            <div className="flex justify-between items-center">
-                                <div>
-                                    <h3 className="font-medium">Route {selectedRoute.route_number}</h3>
-                                    {selectedRoute.route_name && (
-                                        <p className="text-sm text-muted-foreground">{selectedRoute.route_name}</p>
-                                    )}
-                                </div>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={handleClearSelection}
-                                    className="text-muted-foreground hover:text-primary"
-                                >
-                                    Change Route
-                                </Button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Form */}
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                        {/* Only show Route Number field when a route is selected */}
-                        {selectedRoute && (
-                            <div className="space-y-2">
-                                <Label htmlFor="routeNumber">Route Number</Label>
-                                <Input
-                                    id="routeNumber"
-                                    {...register("routeNumber")}
-                                    value={watch("routeNumber") || ""}
-                                    readOnly
-                                    className="w-full"
-                                />
-                                {errors.routeNumber && (
-                                    <p className="text-sm text-red-500">{errors.routeNumber.message}</p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Start Stop */}
-                        {selectedRoute && (
-                            <div className="space-y-2">
-                                <Label htmlFor="startStop">Boarding Point</Label>
-                                <Controller
-                                    name="startStop"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value ?? ""}
-                                            disabled={!routeDetails || isRouteDetailsLoading}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select boarding stop" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {isRouteDetailsLoading ? (
-                                                    <div className="flex justify-center py-4">
-                                                        <Loader2 className="h-5 w-5 animate-spin" />
-                                                    </div>
-                                                ) : stops.length === 0 ? (
-                                                    <div className="text-sm text-muted-foreground py-4 text-center">
-                                                        No stops available
-                                                    </div>
-                                                ) : (
-                                                    stops.map((s) => (
-                                                        <SelectItem key={s.id} value={s.Stop.id.toString()}>
-                                                            {s.Stop.stop_name}
-                                                        </SelectItem>
-                                                    ))
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                                {errors.startStop && (
-                                    <p className="text-sm text-red-500">{errors.startStop.message}</p>
-                                )}
-                            </div>
-                        )}
-
-                        {/* End Stop */}
-                        {selectedRoute && (
-                            <div className="space-y-2">
-                                <Label htmlFor="endStop">Destination Point</Label>
-                                <Controller
-                                    name="endStop"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select
-                                            onValueChange={field.onChange}
-                                            value={field.value ?? ""}
-                                            disabled={startIndex === null || filteredEndStops.length === 0}
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue
-                                                    placeholder={
-                                                        startIndex === null
-                                                            ? "Select boarding point first"
-                                                            : filteredEndStops.length === 0
-                                                                ? "No available destinations"
-                                                                : "Select destination stop"
-                                                    }
-                                                />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {filteredEndStops.map((s) => (
-                                                    <SelectItem key={s.id} value={s.Stop.id.toString()}>
-                                                        {s.Stop.stop_name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    )}
-                                />
-                                {errors.endStop && (
-                                    <p className="text-sm text-red-500">{errors.endStop.message}</p>
-                                )}
-                            </div>
-                        )}
-
-                        {selectedRoute && (
-                            <Button
-                                type="submit"
-                                className="w-full mt-4"
-                                disabled={
-                                    isLoading ||
-                                    isSubmitting ||
-                                    !startStopId ||
-                                    !endStopId ||
-                                    !routeDetails
-                                }
-                            >
-                                {isSubmitting ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Processing...
-                                    </>
-                                ) : (
-                                    "Continue to Tickets"
-                                )}
-                            </Button>
-                        )}
-                    </form>
+                <CardContent className="text-muted-foreground">
+                    Select a route to see its details and choose your boarding and destination points.
                 </CardContent>
             </Card>
-        </div>
-    );
+        )
+    }
+    return (
+        <Card>
+            <CardHeader>
+                <CardDescription className="flex items-center gap-2">
+                    <Route className="h-4 w-4" /> Selected Route
+                </CardDescription>
+                <CardTitle className="text-3xl">Route {routeDetails.route_number}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-1">
+                <p className="text-muted-foreground">{routeDetails.route_name}</p>
+                <div className="flex items-center text-sm pt-2">
+                    <Hash className="mr-2 h-4 w-4" />
+                    <span>{routeDetails.RouteStops?.length || 0} stops on this route</span>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+function SelectTripSkeleton() {
+    return (
+        <main className="container mx-auto max-w-5xl p-4 py-8">
+            <Skeleton className="h-10 w-64 mb-8" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="md:col-span-2 space-y-8">
+                    <div className="space-y-2">
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                    <div className="space-y-2">
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                    <Skeleton className="h-12 w-full" />
+                </div>
+                <div className="space-y-4">
+                    <Skeleton className="h-40 w-full" />
+                </div>
+            </div>
+        </main>
+    )
+}
+
+// --- Main Page Component ---
+
+export default function SelectTripPage() {
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const [startIndex, setStartIndex] = useState<number | null>(null)
+    const { data: routesMap, isLoading: isRoutesLoading } = useRoutes()
+    const routeIdFromUrl = searchParams.get("routeId") || ""
+    const { data: routeDetails, isLoading: isRouteDetailsLoading } = useRouteDetail(routeIdFromUrl)
+
+    const routesArray = useMemo(() => {
+        if (!routesMap) return []
+        return Object.entries(routesMap).map(([id, label]) => {
+            const [route_number, ...nameParts] = label.split(" - ")
+            return { id, route_number, route_name: nameParts.join(" - ") }
+        })
+    }, [routesMap])
+
+    const { control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<SelectTripFormValues>({
+        resolver: zodResolver(SelectTripSchema),
+    })
+
+    const startStopId = watch("startStop")
+
+    useEffect(() => {
+        if (routeDetails) {
+            setValue("routeNumber", routeDetails.route_number)
+        }
+    }, [routeDetails, setValue])
+
+    useEffect(() => {
+        const index = routeDetails?.RouteStops.find((s: any) => s.Stop.id.toString() === startStopId)?.stop_index
+        setStartIndex(index ?? null)
+        setValue("endStop", "")
+    }, [startStopId, routeDetails, setValue])
+
+    const stops = useMemo(() => routeDetails?.RouteStops.slice().sort((a: any, b: any) => a.stop_index - b.stop_index) || [], [routeDetails])
+    const filteredEndStops = useMemo(() => {
+        if (startIndex === null) return []
+        return stops.filter((s: any) => s.stop_index > startIndex)
+    }, [startIndex, stops])
+
+    const handleRouteSelect = useCallback((route: { id: string }) => {
+        router.push(`/select-trip?routeId=${route.id}`, { scroll: false })
+    }, [router])
+
+    const handleClearSelection = () => {
+        setValue("routeNumber", "")
+        setValue("startStop", "")
+        setValue("endStop", "")
+        router.push("/select-trip", { scroll: false })
+    }
+
+    const onSubmit = (data: SelectTripFormValues) => {
+        router.push(`/select-ticket?routeId=${routeIdFromUrl}&startStopId=${data.startStop}&endStopId=${data.endStop}`)
+    }
+
+    const isLoading = isRouteDetailsLoading || isRoutesLoading
+
+    if (isRoutesLoading && !routeIdFromUrl) return <SelectTripSkeleton />
+
+    return (
+        <main className="container mx-auto max-w-5xl p-4 py-8">
+            <div className="mb-8">
+                <h1 className="text-4xl font-bold tracking-tight">Select Your Trip</h1>
+                <p className="text-muted-foreground">Choose a route and your stops to buy a ticket.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-8">
+                {/* Left Column: Form */}
+                <div className="md:col-span-2">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+                        <div>
+                            <Label className="text-lg font-semibold" htmlFor="routeSearch">1. Select Route</Label>
+                            <p className="text-sm text-muted-foreground mb-4">Start by finding the route you want to travel on.</p>
+                            <RouteSearch
+                                routes={routesArray}
+                                onRouteSelect={handleRouteSelect}
+                                selectedRoute={routeDetails ? { route_number: routeDetails.route_number } : null}
+                                onClear={handleClearSelection}
+                                isLoading={isRoutesLoading}
+                            />
+                        </div>
+
+                        <Separator />
+
+                        <div>
+                            <h3 className="text-lg font-semibold">2. Select Stops</h3>
+                            <p className="text-sm text-muted-foreground mb-4">Choose your boarding and destination points.</p>
+
+                            <Card>
+                                <CardContent className="pt-6">
+                                    <div className="relative space-y-2">
+                                        {/* --- The visual timeline line --- */}
+                                        <div
+                                            className={cn(
+                                                "absolute left-4 top-5 h-[calc(100%-40px)] w-0.5 border-l",
+                                                startStopId ? "border-solid border-primary" : "border-dashed"
+                                            )}
+                                        />
+
+                                        {/* --- Boarding Point --- */}
+                                        <div className="flex items-start gap-4">
+                                            <div className="flex flex-col items-center">
+                                                <div className="z-10 mt-1 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <LogIn className="h-5 w-5 text-primary" />
+                                                </div>
+                                            </div>
+                                            <div className="w-full space-y-1.5">
+                                                <Label htmlFor="startStop">Boarding Point</Label>
+                                                <Controller
+                                                    name="startStop"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            onValueChange={field.onChange}
+                                                            value={field.value || ""}
+                                                            disabled={!routeIdFromUrl || isLoading}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue
+                                                                    placeholder={!routeIdFromUrl ? "Please select a route first" : "Select boarding stop"}
+                                                                />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {isLoading && <Loader2 className="mx-auto my-4 h-5 w-5 animate-spin" />}
+                                                                {stops.map((s: any) => (
+                                                                    <SelectItem key={s.id} value={s.Stop.id.toString()}>
+                                                                        {s.Stop.stop_name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                                {errors.startStop && <p className="text-sm text-destructive">{errors.startStop.message}</p>}
+                                            </div>
+                                        </div>
+
+                                        {/* --- Destination Point --- */}
+                                        <div className="flex items-start gap-4 pt-4">
+                                            <div className="flex flex-col items-center">
+                                                <div className="z-10 mt-1 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                                    <MapPin className="h-5 w-5 text-primary" />
+                                                </div>
+                                            </div>
+                                            <div className="w-full space-y-1.5">
+                                                <Label htmlFor="endStop">Destination Point</Label>
+                                                <Controller
+                                                    name="endStop"
+                                                    control={control}
+                                                    render={({ field }) => (
+                                                        <Select
+                                                            onValueChange={field.onChange}
+                                                            value={field.value || ""}
+                                                            disabled={!startStopId || isLoading}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue
+                                                                    placeholder={!startStopId ? "Select boarding point first" : "Select destination stop"}
+                                                                />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {filteredEndStops.map((s: any) => (
+                                                                    <SelectItem key={s.id} value={s.Stop.id.toString()}>
+                                                                        {s.Stop.stop_name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    )}
+                                                />
+                                                {errors.endStop && <p className="text-sm text-destructive">{errors.endStop.message}</p>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || isLoading || !watch("endStop")}>
+                            {isSubmitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Processing...</> : "Continue to Tickets"}
+                        </Button>
+                    </form>
+                </div>
+
+                {/* Right Column: Info Panel */}
+                <div className="order-first md:order-last">
+                    <RouteInfoPanel routeDetails={routeDetails} />
+                </div>
+            </div>
+        </main>
+    )
 }
