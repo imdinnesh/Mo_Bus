@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState, useRef } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter, useSearchParams } from "next/navigation"
-import { MapPin, Search, Loader2, X, ArrowRightLeft, Navigation } from "lucide-react"
+import { MapPin, Search, Loader2, X, ArrowRightLeft, Navigation,ChevronRight, Route } from "lucide-react";
 import Fuse from "fuse.js"
 import { useMutation } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -397,18 +397,30 @@ export default function TripPlannerPage() {
               <ScrollArea className="h-[450px]">
                 <div className="space-y-3 pr-4">
                   {foundRoutes.map((route: any) => (
-                    <div key={route.id} className="rounded-lg border p-4 transition-colors hover:bg-accent/50">
-                      <h3 className="font-semibold">Route #{route.route_number}</h3>
-                      <p className="text-sm text-muted-foreground">{route.route_name}</p>
-                      <Button
-                        onClick={() => {
-                          setRoute(route.id, route.route_number)
-                          router.push(`select-trip?routeId=${route.id}`)
-                        }}
-                      >
-                        Book Ticket
-                      </Button>
+                    <div
+                      key={route.id}
+                      onClick={() => {
+                        // The same function as the button, but on the whole card
+                        setRoute(route.id, route.route_number);
+                        router.push(`select-trip?routeId=${route.id}`);
+                      }}
+                      // The 'group' class allows us to style child elements on hover
+                      className="group flex cursor-pointer items-center justify-between rounded-lg border bg-card p-4 text-card-foreground transition-all hover:border-primary hover:bg-accent"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                          <Route className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-base">Route {route.route_number}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {route.route_name}
+                          </p>
+                        </div>
+                      </div>
 
+                      {/* This icon provides a visual cue for action */}
+                      <ChevronRight className="h-5 w-5 text-muted-foreground transition-transform duration-300 group-hover:translate-x-1 group-hover:text-primary" />
                     </div>
                   ))}
                 </div>

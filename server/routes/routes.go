@@ -12,6 +12,7 @@ import (
 	"github.com/imdinnesh/mobusapi/internal/routeno"
 	"github.com/imdinnesh/mobusapi/internal/routestop"
 	"github.com/imdinnesh/mobusapi/internal/stop"
+	"github.com/imdinnesh/mobusapi/internal/transactions"
 	"github.com/imdinnesh/mobusapi/internal/trip"
 	"github.com/imdinnesh/mobusapi/internal/user"
 	"gorm.io/gorm"
@@ -30,4 +31,5 @@ func RegisterRoutes(r *gin.RouterGroup,db *gorm.DB){
 	qrcode.RegisterRoutes(r,db)
 	announcements.RegisterRoutes(r,db)
 	trip.RegisterRoutes(r, db)
+	transactions.RegisterRoutes(r, db)
 }
