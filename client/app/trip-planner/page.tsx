@@ -54,6 +54,8 @@ function TripPlannerSkeleton() {
 }
 
 export default function TripPlannerPage() {
+
+  const router = useRouter()
   const {
     control,
     handleSubmit,
@@ -65,7 +67,7 @@ export default function TripPlannerPage() {
   })
 
   const searchParams = useSearchParams()
-  const { setSource, setDestination } = useTripStore()
+  const { setSource, setDestination, setRoute } = useTripStore()
   const { data: stopsMap, isLoading } = useStops()
 
   const [querySource, setQuerySource] = useState("")
@@ -240,9 +242,8 @@ export default function TripPlannerPage() {
                                   setQuerySource(item.label)
                                   setSourceDropdownOpen(false)
                                 }}
-                                className={`px-3 py-2 cursor-pointer text-sm outline-none ${
-                                  activeIndex === index ? "bg-accent text-accent-foreground" : ""
-                                }`}
+                                className={`px-3 py-2 cursor-pointer text-sm outline-none ${activeIndex === index ? "bg-accent text-accent-foreground" : ""
+                                  }`}
                               >
                                 {item.label}
                               </li>
@@ -257,9 +258,6 @@ export default function TripPlannerPage() {
                 </>
               )}
             />
-            {errors.sourceId && (
-              <p className="text-destructive text-sm mt-1">Starting point is required.</p>
-            )}
           </div>
 
           {/* Swap Button */}
@@ -342,9 +340,8 @@ export default function TripPlannerPage() {
                                   setQueryDest(item.label)
                                   setDestDropdownOpen(false)
                                 }}
-                                className={`px-3 py-2 cursor-pointer text-sm outline-none ${
-                                  activeIndex === index ? "bg-accent text-accent-foreground" : ""
-                                }`}
+                                className={`px-3 py-2 cursor-pointer text-sm outline-none ${activeIndex === index ? "bg-accent text-accent-foreground" : ""
+                                  }`}
                               >
                                 {item.label}
                               </li>
@@ -359,9 +356,6 @@ export default function TripPlannerPage() {
                 </>
               )}
             />
-            {errors.destinationId && (
-              <p className="text-destructive text-sm mt-1">Destination is required.</p>
-            )}
           </div>
 
           <Button
@@ -406,6 +400,15 @@ export default function TripPlannerPage() {
                     <div key={route.id} className="rounded-lg border p-4 transition-colors hover:bg-accent/50">
                       <h3 className="font-semibold">Route #{route.route_number}</h3>
                       <p className="text-sm text-muted-foreground">{route.route_name}</p>
+                      <Button
+                        onClick={() => {
+                          setRoute(route.id, route.route_number)
+                          router.push(`select-trip?routeId=${route.id}`)
+                        }}
+                      >
+                        Book Ticket
+                      </Button>
+
                     </div>
                   ))}
                 </div>
