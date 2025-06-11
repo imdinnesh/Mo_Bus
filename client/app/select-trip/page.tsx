@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import Fuse from "fuse.js"
 import { LogIn, MapPin } from "lucide-react";
-import { cn } from "@/lib/utils"; 
+import { cn } from "@/lib/utils";
 import { SelectTripFormValues, SelectTripSchema } from "@/schemas/trip"
 import { useRouteDetail } from "@/hooks/useRouteDetail"
 import { useRoutes } from "@/hooks/useRoutes"
@@ -256,26 +256,26 @@ export default function SelectTripPage() {
                             <h3 className="text-lg font-semibold">2. Select Stops</h3>
                             <p className="text-sm text-muted-foreground mb-4">Choose your boarding and destination points.</p>
 
+                            {/* --- Start of Refactored "Select Stops" Card --- */}
                             <Card>
-                                <CardContent className="pt-6">
-                                    <div className="relative space-y-2">
+                                <CardContent className="p-6">
+                                    <div className="relative space-y-8">
                                         {/* --- The visual timeline line --- */}
                                         <div
                                             className={cn(
-                                                "absolute left-4 top-5 h-[calc(100%-40px)] w-0.5 border-l",
-                                                startStopId ? "border-solid border-primary" : "border-dashed"
+                                                "absolute left-4.5 top-4.5 h-[calc(100%-36px)] w-0.5",
+                                                startStopId ? "bg-primary" : "bg-border"
                                             )}
+                                            aria-hidden="true"
                                         />
 
                                         {/* --- Boarding Point --- */}
                                         <div className="flex items-start gap-4">
-                                            <div className="flex flex-col items-center">
-                                                <div className="z-10 mt-1 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                                    <LogIn className="h-5 w-5 text-primary" />
-                                                </div>
+                                            <div className="z-10 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 border-primary bg-background">
+                                                <LogIn className="h-5 w-5 text-primary" />
                                             </div>
                                             <div className="w-full space-y-1.5">
-                                                <Label htmlFor="startStop">Boarding Point</Label>
+                                                <Label htmlFor="startStop" className="font-medium">Boarding Point</Label>
                                                 <Controller
                                                     name="startStop"
                                                     control={control}
@@ -306,14 +306,22 @@ export default function SelectTripPage() {
                                         </div>
 
                                         {/* --- Destination Point --- */}
-                                        <div className="flex items-start gap-4 pt-4">
-                                            <div className="flex flex-col items-center">
-                                                <div className="z-10 mt-1 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                                    <MapPin className="h-5 w-5 text-primary" />
-                                                </div>
+                                        <div className="flex items-start gap-4">
+                                            <div
+                                                className={cn(
+                                                    "z-10 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border-2 bg-background",
+                                                    startStopId ? "border-primary" : "border-muted"
+                                                )}
+                                            >
+                                                <MapPin className={cn("h-5 w-5", startStopId ? "text-primary" : "text-muted-foreground")} />
                                             </div>
                                             <div className="w-full space-y-1.5">
-                                                <Label htmlFor="endStop">Destination Point</Label>
+                                                <Label
+                                                    htmlFor="endStop"
+                                                    className={cn("font-medium", !startStopId && "text-muted-foreground")}
+                                                >
+                                                    Destination Point
+                                                </Label>
                                                 <Controller
                                                     name="endStop"
                                                     control={control}
@@ -344,6 +352,7 @@ export default function SelectTripPage() {
                                     </div>
                                 </CardContent>
                             </Card>
+                            {/* --- End of Refactored "Select Stops" Card --- */}
                         </div>
 
                         <Button type="submit" size="lg" className="w-full" disabled={isSubmitting || isLoading || !watch("endStop")}>

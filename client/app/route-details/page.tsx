@@ -8,6 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Skeleton } from "@/components/ui/skeleton"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Bus, Ticket, MapPin, AlertCircle, FileX, Hash } from "lucide-react"
+import { useBusDetails } from "@/hooks/useBusDetails"
+import { useState } from "react"
+import { LiveTrackingSection } from "@/components/live-tracking-section"
 
 type Stop = {
   id: number
@@ -73,7 +76,7 @@ function StopTimeline({ stops }: { stops: Stop[] }) {
       </h2>
       <Card>
         <CardContent className="p-0">
-          <ScrollArea className="h-[500px]">
+          <ScrollArea className="h-[400px]">
             <div className="p-6">
               {stops.map((stop, index) => (
                 <div key={stop.id} className="relative flex items-start gap-6 pb-8">
@@ -87,7 +90,7 @@ function StopTimeline({ stops }: { stops: Stop[] }) {
                     className={`relative z-10 flex h-3 w-3 items-center justify-center rounded-full mt-1 
                       ${index === 0 ? "bg-primary" : "border-2 border-primary bg-background"}`}
                   />
-                  
+
                   <p className="font-medium">{stop.Stop.stop_name}</p>
                 </div>
               ))}
@@ -151,11 +154,11 @@ function RouteDetailsSkeleton() {
 export default function RouteDetailsPage() {
   const searchParams = useSearchParams()
   const routeId = searchParams.get('routeId') || ''
-  
+
   const { data, isLoading, error } = useRouteDetail(routeId)
 
   if (isLoading) return <RouteDetailsSkeleton />
-  
+
   if (error) {
     return (
       <div className="flex h-[70vh] flex-col items-center justify-center text-center">
@@ -166,7 +169,7 @@ export default function RouteDetailsPage() {
       </div>
     )
   }
-  
+
   if (!data) {
     return (
       <div className="flex h-[70vh] flex-col items-center justify-center text-center">
@@ -181,6 +184,7 @@ export default function RouteDetailsPage() {
 
   return (
     <main className="container mx-auto max-w-6xl p-4 py-8">
+      {/* SECTION 1: Page Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold tracking-tight flex items-center gap-3">
           <Bus className="h-9 w-9 text-primary" />
@@ -188,17 +192,31 @@ export default function RouteDetailsPage() {
         </h1>
         <p className="text-muted-foreground">View all stops and book your ticket.</p>
       </div>
-      
+
+      {/* SECTION 2: Main Route Information (Two-Column Grid) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Main Content: Stop Timeline */}
+        {/* Main Content: Stop Timeline (takes 2 of 3 columns) */}
         <div className="md:col-span-2">
           <StopTimeline stops={sortedStops} />
         </div>
 
-        {/* Sidebar: Info & Actions */}
+        {/* Sidebar: Info & Actions (takes 1 of 3 columns) */}
         <div className="order-first md:order-last">
           <RouteInfoPanel route={{ ...data, id: String(data.id) }} />
         </div>
+        {/*
+          THE LIVE TRACKING SECTION IS REMOVED FROM HERE
+        */}
+      </div>
+
+      {/* SECTION 3: Visual Separator & Live Tracking */}
+      {/* We place the tracking section *outside* the grid to make it full-width */}
+      <div className="mt-12">
+        {/* A horizontal rule provides a clean, visual break between sections */}
+        <hr className="my-8" />
+
+        {/* The LiveTrackingSection now sits comfortably in its own full-width space */}
+        <LiveTrackingSection routeId={routeId} />
       </div>
     </main>
   )
