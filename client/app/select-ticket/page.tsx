@@ -38,13 +38,7 @@ export default function SelectTicketPage() {
         mutationKey: ["createBooking"],
         mutationFn: createBookings,
         onSuccess: (data) => {
-            toast.success(data.message || "Booking created successfully", {
-                description: `Your ${quantity} ticket(s) have been booked.`,
-                action: {
-                    label: "View Ticket",
-                    onClick: () => setRedirectModalOpen(true)
-                }
-            })
+            toast.success(data.message || "Booking created successfully")
             console.log(data)
             localStorage.setItem("bookingId", data.booking_id.toString())
             setBookings(data.booking_id,parseInt(routeId || "0"), parseInt(startStopId || "0"), parseInt(endStopId || "0"))
@@ -244,11 +238,6 @@ export default function SelectTicketPage() {
                         </Button>
                     </CardContent>
                 </Card>
-
-                <RedirectModal
-                    isOpen={redirectModalOpen}
-                    onClose={() => setRedirectModalOpen(false)}
-                />
             </div>
         </div>
     )
