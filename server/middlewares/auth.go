@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -96,6 +97,7 @@ func AuthMiddleware() gin.HandlerFunc {
 func AdminMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		role := ctx.GetString("role")
+		fmt.Println("User role:", role)
 		if role != "admin" {
 			ctx.JSON(http.StatusForbidden, gin.H{
 				"error": "You are not authorized to access this resource",
