@@ -60,7 +60,7 @@ function SearchInfoPanel() {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-muted-foreground">
-          Enter a route number (e.g., "101") to see its full path, all stops, and live bus locations.
+          Enter a route number (e.g., "11") to see its full path, all stops, and live bus locations.
         </CardContent>
       </Card>
       <Card>

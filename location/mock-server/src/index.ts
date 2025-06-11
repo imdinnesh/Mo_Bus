@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Backend endpoint
-const BACKEND_URL = 'http://localhost:3000/location';
+const BACKEND_URL = 'http://localhost:3001/location';
 
 // Number of buses to simulate
 const BUS_COUNT = 5;

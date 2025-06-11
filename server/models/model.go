@@ -90,3 +90,13 @@ type QrCode struct {
 	Used      bool      `json:"used" gorm:"default:false"` // true if the QR code has been used
 	UsedAt    time.Time `json:"used_at"`
 }
+
+// Bus Table
+type Bus struct {
+	ID         uint      `gorm:"primaryKey" json:"id"`
+	BusNumber  string    `json:"bus_number"` // Unique bus identifier like "BUS-101"
+	RouteID    uint      `json:"route_id"`   // Foreign key to Route
+	Route      Route     `gorm:"foreignKey:RouteID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"route"`
+	IsActive   bool      `json:"is_active" gorm:"default:true"` // If the bus is actively running on the route
+	LicencePlate string    `json:"license_plate"` // Unique license plate number for the bus
+}

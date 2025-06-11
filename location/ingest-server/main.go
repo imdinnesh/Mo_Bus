@@ -117,8 +117,8 @@ func main() {
 
 	http.HandleFunc("/location", gpsHandler)
 
-	log.Println("Ingest server listening on :3000")
-	if err := http.ListenAndServe(":3000", nil); err != nil {
+	log.Println("Ingest server listening on :3001")
+	if err := http.ListenAndServe(":3001", nil); err != nil {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
