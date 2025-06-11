@@ -29,7 +29,11 @@ func (r *repository) FindById(id uint) (*models.User, error) {
 
 func (r *repository) GetTransactions(userId uint) ([]models.Transaction, error) {
 	transactions := []models.Transaction{}
-	err := r.db.Where("user_id = ?", userId).Find(&transactions).Error
+	err := r.db.
+		Where("user_id = ?", userId).
+		Order("created_at DESC").
+		Find(&transactions).Error
+
 	if err != nil {
 		return nil, err
 	}
