@@ -57,10 +57,12 @@ func (r *repository) CreateBooking(booking *models.Booking) (uint, error) {
 func (r *repository) GetBookings(userID uint) ([]models.Booking, error) {
 	bookings := []models.Booking{}
 
-	err := r.db.Preload("SourceStop").
+	err := r.db.
+		Preload("SourceStop").
 		Preload("DestinationStop").
 		Preload("Route").
 		Where("user_id = ?", userID).
+		Order("booking_date DESC").
 		Find(&bookings).Error
 
 	if err != nil {
@@ -68,7 +70,6 @@ func (r *repository) GetBookings(userID uint) ([]models.Booking, error) {
 	}
 
 	return bookings, nil
-
 }
 
 func (r *repository) GetBooking(bookingID string,userID uint) (*models.Booking, error) {

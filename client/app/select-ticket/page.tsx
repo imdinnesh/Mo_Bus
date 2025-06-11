@@ -1,244 +1,235 @@
 "use client"
 
+import { useState } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
+import { useMutation } from "@tanstack/react-query"
+import { toast } from "sonner"
+import { MapPin, Minus, Plus, Ticket, Loader2 } from "lucide-react"
+
 import { createBookings } from "@/api/bookings"
+import { getStopNameById, useStops } from "@/hooks/useStops"
+import { useBookingStore } from "@/store/useBookingStore"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { getStopNameById, useStops } from "@/hooks/useStops"
-import { useMutation } from "@tanstack/react-query"
-import { useSearchParams } from "next/navigation"
-import { useState } from "react"
-import { toast } from "sonner"
-import { MapPin, Minus, Plus, ArrowRight, Ticket } from "lucide-react"
-import { RedirectModal } from "@/components/redirect-modal"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useRouter } from "next/navigation"
-import { useBookingStore } from "@/store/useBookingStore"
+import { Separator } from "@/components/ui/separator"
 
+// --- Skeleton Component for the new Two-Column Layout ---
+function SelectTicketSkeleton() {
+    return (
+        <div className="container mx-auto max-w-6xl p-4 py-8 md:py-12">
+            {/* Header Skeleton */}
+            <div className="mb-12 flex flex-col items-center space-y-3 text-center">
+                <Skeleton className="h-9 w-80" />
+                <Skeleton className="h-5 w-96" />
+            </div>
+
+            {/* Two-Column Grid Skeleton */}
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-5 md:gap-12">
+                {/* Left Column Skeleton */}
+                <div className="md:col-span-3">
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-7 w-48" />
+                            <Skeleton className="h-4 w-64" />
+                        </CardHeader>
+                        <CardContent>
+                            <Skeleton className="h-32 w-full rounded-lg" />
+                        </CardContent>
+                        <CardFooter>
+                            <Skeleton className="h-6 w-32" />
+                        </CardFooter>
+                    </Card>
+                </div>
+
+                {/* Right Column Skeleton */}
+                <div className="md:col-span-2">
+                    <Card>
+                        <CardHeader>
+                            <Skeleton className="h-7 w-40" />
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <Skeleton className="h-14 w-full" />
+                            <Skeleton className="h-24 w-full rounded-lg" />
+                            <Skeleton className="h-12 w-full rounded-md" />
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+// --- Main Page Component ---
 export default function SelectTicketPage() {
     const searchParams = useSearchParams()
+    const router = useRouter()
+    
     const routeId = searchParams.get("routeId")
     const startStopId = searchParams.get("startStopId")
     const endStopId = searchParams.get("endStopId")
+
     const { data: stops, isLoading: stopsLoading } = useStops()
     const startStopName = stops ? getStopNameById(stops, startStopId) : null
     const endStopName = stops ? getStopNameById(stops, endStopId) : null
-
+    
     const [quantity, setQuantity] = useState(1)
-    const [redirectModalOpen, setRedirectModalOpen] = useState(false)
-    const ticketPrice = 10
+    const ticketPrice = 10 // Assuming a fixed price
 
-    const setBookings=useBookingStore(state=>state.setBooking)
-
-    const router = useRouter()
+    const setBooking = useBookingStore(state => state.setBooking)
 
     const mutation = useMutation({
         mutationKey: ["createBooking"],
         mutationFn: createBookings,
         onSuccess: (data) => {
-            toast.success(data.message || "Booking created successfully")
-            console.log(data)
+            toast.success(data.message || "Booking created successfully.")
+            setBooking(data.booking_id, parseInt(routeId!), parseInt(startStopId!), parseInt(endStopId!))
             localStorage.setItem("bookingId", data.booking_id.toString())
-            setBookings(data.booking_id,parseInt(routeId || "0"), parseInt(startStopId || "0"), parseInt(endStopId || "0"))
-            router.push('/redirect-page')
-            
+            router.push("/redirect-page")
         },
         onError: (error: any) => {
             console.error("Error creating booking", error)
-            toast.error("Failed to create booking", {
-                description: error.message || "Please try again later."
+            toast.error("Failed to create booking.", {
+                description: error.message || "An unexpected error occurred. Please try again."
             })
         },
     })
 
-    const createBooking = async () => {
+    const handleCreateBooking = () => {
         if (!routeId || !startStopId || !endStopId) {
-            toast.error("Missing information", {
-                description: "Please ensure you've selected all required trip details."
+            toast.error("Missing trip information.", {
+                description: "Please go back and select a complete trip."
             })
             return
         }
 
-        const payload = {
+        mutation.mutate({
             route_id: Number.parseInt(routeId),
             source_stop_id: Number.parseInt(startStopId),
             destination_stop_id: Number.parseInt(endStopId),
-            quantity
-        }
-
-        mutation.mutate(payload)
+        })
     }
 
     const incrementQuantity = () => setQuantity(prev => Math.min(prev + 1, 10))
     const decrementQuantity = () => setQuantity(prev => Math.max(prev - 1, 1))
 
     if (stopsLoading) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-                <div className="max-w-2xl mx-auto space-y-6">
-                    <Skeleton className="h-16 w-16 mx-auto rounded-full" />
-                    <Skeleton className="h-8 w-64 mx-auto" />
-                    <Skeleton className="h-6 w-48 mx-auto" />
-
-                    <Card className="shadow-lg">
-                        <CardHeader>
-                            <Skeleton className="h-6 w-32" />
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Skeleton className="h-24 w-full" />
-                            <Skeleton className="h-4 w-full" />
-                        </CardContent>
-                    </Card>
-
-                    <Card className="shadow-lg">
-                        <CardHeader>
-                            <Skeleton className="h-6 w-32" />
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <Skeleton className="h-20 w-full" />
-                            <Skeleton className="h-32 w-full" />
-                            <Skeleton className="h-12 w-full" />
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
-        )
+        return <SelectTicketSkeleton />
     }
 
     return (
-        <div className="min-h-screen  p-4 md:p-6">
-            <div className="max-w-2xl mx-auto space-y-6">
+        <main className="bg-background text-foreground min-h-screen">
+            <div className="container mx-auto max-w-6xl p-4 py-8 md:py-12">
                 {/* Header */}
-                <div className="text-center space-y-3">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full mb-4 shadow-md">
-                        <Ticket className="w-8 h-8 text-white" />
-                    </div>
-                    <h1 className="text-3xl font-bold text-gray-900">Book Your Ticket</h1>
-                    <p className="text-gray-600 max-w-md mx-auto">
-                        Review your trip details and select the number of tickets
+                <div className="mb-12 flex flex-col items-center space-y-2 text-center">
+                    <h1 className="text-4xl font-bold tracking-tight">Confirm Your Trip</h1>
+                    <p className="max-w-2xl text-muted-foreground">
+                        Review your journey details below. On the right, select the number of tickets you need and proceed to payment.
                     </p>
                 </div>
-
-                {/* Trip Details Card */}
-                <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-                    <CardHeader className="pb-4">
-                        <CardTitle className="flex items-center gap-2 text-xl">
-                            <MapPin className="w-5 h-5 text-blue-600" />
-                            <span>Trip Details</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-3">
-                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                                <div>
-                                    <p className="font-medium text-gray-900">{startStopName || "Unknown stop"}</p>
-                                    <p className="text-sm text-gray-500">Departure</p>
+                
+                {/* Two-Column Grid */}
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-5 md:gap-12">
+                    {/* Left Column: Trip Details */}
+                    <div className="md:col-span-3">
+                        <Card className="w-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Ticket className="h-5 w-5" />
+                                    Your Itinerary
+                                </CardTitle>
+                                <CardDescription>
+                                    This is a summary of your selected trip.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {/* Visual Timeline */}
+                                <div className="flex gap-6">
+                                    <div className="flex flex-col items-center">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary">
+                                            <MapPin className="h-4 w-4 text-primary" />
+                                        </div>
+                                        <div className="h-full w-px border-l-2 border-dashed" />
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                            <MapPin className="h-4 w-4" />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-between py-1">
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">Departure</p>
+                                            <p className="font-bold text-lg">{startStopName || "Unknown Stop"}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-sm text-muted-foreground">Destination</p>
+                                            <p className="font-bold text-lg">{endStopName || "Unknown Stop"}</p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <ArrowRight className="w-5 h-5 text-gray-400 mx-2" />
-                            <div className="flex items-center gap-3">
-                                <div>
-                                    <p className="font-medium text-gray-900 text-right">{endStopName || "Unknown stop"}</p>
-                                    <p className="text-sm text-gray-500 text-right">Destination</p>
+                            </CardContent>
+                            <CardFooter>
+                                <div className="flex items-center justify-between text-sm text-muted-foreground w-full">
+                                    <span>Route ID</span>
+                                    <Badge variant="outline" className="font-mono">{routeId || "N/A"}</Badge>
                                 </div>
-                                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-600">Route ID:</span>
-                            <Badge variant="secondary" className="font-mono">
-                                {routeId || "N/A"}
-                            </Badge>
-                        </div>
-                    </CardContent>
-                </Card>
+                            </CardFooter>
+                        </Card>
+                    </div>
 
-                {/* Ticket Selection Card */}
-                <Card className="shadow-lg border-0 bg-white/90 backdrop-blur-sm">
-                    <CardHeader>
-                        <CardTitle className="text-xl">Ticket Selection</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="space-y-3">
-                            <Label htmlFor="quantity" className="text-base font-medium">
-                                Number of Tickets
-                            </Label>
-                            <div className="flex items-center gap-4">
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={decrementQuantity}
-                                    disabled={quantity <= 1}
-                                    className="h-10 w-10 rounded-full"
-                                    aria-label="Decrease quantity"
-                                >
-                                    <Minus className="w-4 h-4" />
-                                </Button>
-                                <Input
-                                    id="quantity"
-                                    type="number"
-                                    min="1"
-                                    max="10"
-                                    value={quantity}
-                                    onChange={(e) => {
-                                        const value = Math.min(Math.max(parseInt(e.target.value) || 1, 10))
-                                        setQuantity(value)
-                                    }}
-                                    className="w-20 text-center text-lg font-semibold [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                />
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    onClick={incrementQuantity}
-                                    disabled={quantity >= 10}
-                                    className="h-10 w-10 rounded-full"
-                                    aria-label="Increase quantity"
-                                >
-                                    <Plus className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        </div>
+                    {/* Right Column: Ticket Selection (Sticky) */}
+                    <div className="md:col-span-2">
+                        <div className="sticky top-8 space-y-6">
+                            <Card className="w-full">
+                                <CardHeader>
+                                    <CardTitle>Select Tickets</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                    <div>
+                                        <Label htmlFor="quantity" className="text-sm font-medium text-muted-foreground">
+                                            Quantity
+                                        </Label>
+                                        <div className="mt-2 flex items-center gap-3">
+                                            <Button variant="outline" size="icon" onClick={decrementQuantity} disabled={quantity <= 1} className="h-14 w-14 rounded-md" aria-label="Decrease quantity">
+                                                <Minus className="h-5 w-5" />
+                                            </Button>
+                                            <Input id="quantity" type="text" readOnly value={quantity} className="h-14 w-24 rounded-md text-center text-2xl font-bold [appearance:textfield]" />
+                                            <Button variant="outline" size="icon" onClick={incrementQuantity} disabled={quantity >= 10} className="h-14 w-14 rounded-md" aria-label="Increase quantity">
+                                                <Plus className="h-5 w-5" />
+                                            </Button>
+                                        </div>
+                                    </div>
 
-                        {/* Price Breakdown */}
-                        <div className="bg-blue-50/50 p-4 rounded-lg space-y-2 border border-blue-100">
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Price per ticket:</span>
-                                <span className="font-medium">₹{ticketPrice.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-600">Quantity:</span>
-                                <span className="font-medium">{quantity}</span>
-                            </div>
-                            <hr className="border-blue-200 my-2" />
-                            <div className="flex justify-between items-center">
-                                <span className="font-bold text-blue-900">Total Amount:</span>
-                                <span className="text-xl font-bold text-blue-900">
-                                    ₹{(quantity * ticketPrice).toFixed(2)}
-                                </span>
-                            </div>
+                                    <div className="space-y-4 rounded-lg border bg-muted/50 p-4">
+                                        <div className="flex justify-between items-baseline">
+                                            <span className="text-muted-foreground">Ticket Price</span>
+                                            <span className="font-medium">₹{ticketPrice.toFixed(2)} x {quantity}</span>
+                                        </div>
+                                        <Separator />
+                                        <div className="flex justify-between items-baseline">
+                                            <span className="text-lg font-bold">Total</span>
+                                            <span className="text-2xl font-bold tracking-tight">
+                                                ₹{(quantity * ticketPrice).toFixed(2)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                                <CardFooter>
+                                     <Button onClick={handleCreateBooking} disabled={mutation.isPending || !routeId} className="h-12 w-full text-lg" size="lg">
+                                        {mutation.isPending ? (
+                                            <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Processing...</>
+                                        ) : (
+                                            `Proceed to Pay`
+                                        )}
+                                    </Button>
+                                </CardFooter>
+                            </Card>
                         </div>
-
-                        <Button
-                            onClick={createBooking}
-                            disabled={mutation.isPending || stopsLoading || !routeId || !startStopId || !endStopId}
-                            className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-md transition-all hover:shadow-lg"
-                            size="lg"
-                        >
-                            {mutation.isPending ? (
-                                <span className="flex items-center gap-2">
-                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                    Processing...
-                                </span>
-                            ) : (
-                                `Book ${quantity} Ticket${quantity > 1 ? 's' : ''}`
-                            )}
-                        </Button>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
     )
 }
