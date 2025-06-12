@@ -23,10 +23,7 @@ func InitRedis(cfg *config.Config) {
 
 	// [Connection String Redis connection]--------
 
-	opt,err:=redis.ParseURL(cfg.RedisConnectionStr)
-	if err != nil {
-		log.Fatalf("Failed to parse Redis connection string: %v", err)
-	}
+	opt, _ := redis.ParseURL(cfg.RedisConnectionStr)
 	Client = redis.NewClient(opt)
 
 	if err := Client.Ping(Ctx).Err(); err != nil {
