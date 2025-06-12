@@ -1,4 +1,4 @@
-import { axiosInstance } from "@/lib/axios";
+import { axiosInstance, locationAxiosInstance } from "@/lib/axios";
 
 export const getBusByRouteId= async (routeId: string) => {
     const token = localStorage.getItem('accessToken') || '';
@@ -9,4 +9,8 @@ export const getBusByRouteId= async (routeId: string) => {
     });
     return response.data;
 }
-    
+
+export const getNearByBuses=async(lat: number, lon: number) => {
+    const response=await locationAxiosInstance.get(`/buses/nearby?lat=${lat}&lon=${lon}&radius=5`);
+    return response.data;
+}
