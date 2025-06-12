@@ -3,15 +3,11 @@ import { NearbyBuses } from "@/components/nearby-buses";
 import { QuickActions } from "@/components/quick-actions";
 import { SearchCard } from "@/components/search-card";
 import { TicketActionCard } from "@/components/ticket-action-card";
-import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
   return (
-    // Use a more theme-friendly background
     <div className="min-h-screen bg-muted/40 p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-10">
-
-        {/* Page Header */}
         <header>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             Dashboard
@@ -22,7 +18,6 @@ export default function DashboardPage() {
         </header>
 
         <main className="space-y-8">
-          {/* Top Section - Search & Active Tickets */}
           <section className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             <div className="lg:col-span-3">
               <SearchCard />
@@ -32,18 +27,22 @@ export default function DashboardPage() {
             </div>
           </section>
 
-          {/* Bottom Section - Quick Actions & Primary CTA */}
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
+          {/* === CORRECTED SECTION === */}
+          {/* We change to a 4-column grid and place each item directly in it */}
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* QuickActions now takes 2 of the 4 columns on large screens */}
+            <div className="md:col-span-2 lg:col-span-2">
               <QuickActions />
             </div>
 
-            {/* The new, improved card takes its place */}
+            {/* TicketActionCard and NearbyBuses each take 1 column */}
             <div>
               <TicketActionCard />
             </div>
+            <div>
+              <NearbyBuses />
+            </div>
           </section>
-          <NearbyBuses />
         </main>
       </div>
     </div>
