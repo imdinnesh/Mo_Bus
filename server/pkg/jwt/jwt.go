@@ -22,7 +22,7 @@ func CreateToken(email string, id uint, deviceID string, role string) (string, e
 			"email":     email,
 			"id":        float64(id), // Store as float64 for compatibility
 			"device_id": deviceID,
-			"role":      role,                                    // Include role in token
+			"role":      role,                                               // Include role in token
 			"exp":       time.Now().Add(constants.AccessTokenExpiry).Unix(), // 30 min expiry
 		})
 
@@ -87,7 +87,7 @@ func CreateRefreshToken(email string, deviceID string, role string) (string, err
 		jwt.MapClaims{
 			"email":     email,
 			"device_id": deviceID,
-			"role":      role,                                      // Include role
+			"role":      role,                                                // Include role
 			"exp":       time.Now().Add(constants.RefreshTokenExpiry).Unix(), // 7 days expiry
 		})
 
@@ -132,11 +132,14 @@ func RefreshAccessToken(refreshToken string) (string, string, error) {
 	// Check if the refresh token exists in the database
 	db := database.DB
 
-	newUser:=models.User{}
+	newUser := models.User{}
 	db.Where("email = ?", email).First(&newUser)
 
 	refreshTokenEntry := models.RefreshToken{}
-	db.Where("user_id = ? AND device_id = ?", newUser.ID, deviceID).First(&refreshTokenEntry)
+	db.
+		Where("user_id = ? AND device_id = ?", newUser.ID, deviceID).
+		Order("expires_at DESC").
+		First(&refreshTokenEntry)
 
 	if refreshTokenEntry.ID == 0 {
 		return "", "", fmt.Errorf("refresh token not found in database. Please login again")
