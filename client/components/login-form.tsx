@@ -43,6 +43,11 @@ export function LoginForm({
       router.push("/dashboard")
     },
     onError: (error: any) => {
+      if (error.response.status===403){
+        toast.error("User not verified. Please verify your account.")
+        router.push(`/verify?email=${error.response.data.email}`)
+        return
+      }
       toast.error(error.response?.data?.error || "Login failed. Please try again.")
     },
   })

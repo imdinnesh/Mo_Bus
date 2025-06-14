@@ -92,6 +92,12 @@ func (h *Handler) SignIn(ctx *gin.Context) {
 	response, err := h.service.SignIn(req)
 	if err != nil {
 		if apiErr, ok := err.(*apierror.APIError); ok {
+
+			if apiErr.StatusCode==http.StatusForbidden{
+				ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message, "email": req.Email})
+				return
+			}
+
 			ctx.JSON(apiErr.StatusCode, gin.H{"error": apiErr.Message})
 			return
 		}

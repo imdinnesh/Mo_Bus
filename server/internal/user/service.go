@@ -163,6 +163,10 @@ func (s *service) SignIn(req SignInRequest) (*SignInResponse, error) {
 		return nil, apierror.New("Invalid credentials", http.StatusUnauthorized)
 	}
 
+	if !user.VerifiedStatus {
+		return nil, apierror.New("User not verified. Please verify your account", http.StatusForbidden)
+	}
+
 	accessToken, err := jwt.CreateToken(user.Email, user.ID, req.DeviceId, user.Role)
 	if err != nil {
 		return nil, apierror.New("Error generating access token", http.StatusInternalServerError)
