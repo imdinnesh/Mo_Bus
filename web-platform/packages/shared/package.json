@@ -10,11 +10,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "axios": "^1.10.0",
     "uuid": "^11.1.0",
     "zod": "^3.24.2"
   },
   "exports": {
-    "./lib": "./src/lib/device.ts",
-    "./schemas/auth": "./src/schemas/auth.ts"
+    "./lib/device": "./src/lib/device.ts",
+    "./schemas/auth": "./src/schemas/auth.ts",
+    "./lib/axios":"./src/lib/axios.ts"
   }
 }
