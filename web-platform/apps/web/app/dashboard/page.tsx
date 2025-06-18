@@ -1,14 +1,10 @@
-"use client"
-import { useAuthStore } from "@/store/auth-store"
+import { QuickActions } from "@/components/quick-actions"
 
 export default function DashboardPage() {
 
-    const accessToken=useAuthStore(state=>state.accessToken)
-
     return(
         <div>
-            Token is {accessToken}
-
+            <QuickActions/>
         </div>
     )
 }
