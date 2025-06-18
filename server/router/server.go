@@ -16,6 +16,7 @@ func New(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		AllowOriginFunc: func(origin string) bool {
 			allowed := map[string]bool{
 				"http://localhost:3000":     true,
+				"http://localhost:3001":     true,
 				"https://mo-bus.vercel.app": true,
 			}
 			return allowed[origin]

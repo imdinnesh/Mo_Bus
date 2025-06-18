@@ -12,31 +12,12 @@ interface LoginPayload {
     device_id: string;
 }
 
-interface OtpVerifyPayload {
-    email: string;
-    otp: string;
-}
-
-interface OtpResendPayload {
-    email: string;
-}
-
 export const signup = async (payload: SignupPayload) => {
-    const response = await axiosInstance.post("/user/signup", payload);
+    const response = await axiosInstance.post("/admin/signup", payload);
     return response.data;
 }
 
 export const login = async (payload: LoginPayload) => {
-    const response = await axiosInstance.post("/user/signin", payload);
-    return response.data;
-}
-
-export const otpverify=async(payload:OtpVerifyPayload)=>{
-    const response = await axiosInstance.post("/user/verify-email", payload);
-    return response.data;
-}
-
-export const otpResend = async (payload: OtpResendPayload) => {
-    const response = await axiosInstance.post("/user/resend-otp", payload);
+    const response = await axiosInstance.post("/admin/signin", payload);
     return response.data;
 }

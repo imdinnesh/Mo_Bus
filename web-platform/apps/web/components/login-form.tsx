@@ -19,6 +19,7 @@ import { login } from "@/api/auth"
 import { getDeviceId } from "@workspace/shared/lib/device"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { useAuthStore } from "@/store/auth-store"
 
 export function LoginForm({
   className,
@@ -38,8 +39,8 @@ export function LoginForm({
     mutationFn: login,
     onSuccess: (data) => {
       toast.success(data.message || "Login successful!")
-      localStorage.setItem("accessToken", data.access_token)
-      localStorage.setItem("refreshToken", data.refresh_token)
+      // [----Set Tokens----]
+      useAuthStore.getState().setAccessToken(data.access_token);
       router.push("/dashboard")
     },
     onError: (error: any) => {
