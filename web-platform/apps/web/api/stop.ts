@@ -21,3 +21,30 @@ export const addStop = async (payload: addStopPayload) => {
 
     return response.data;
 }
+
+export const updateStop=async(stopId:string,payload:addStopPayload)=>{
+    const response=await axiosInstance.put(`/stop/update-stop/${stopId}`, payload, {
+        headers: {
+            "Authorization": useAuthStore.getState().accessToken
+        }
+    })
+    return response.data;
+}
+
+export const deleteStop = async (stopId: string) => {
+    const response = await axiosInstance.delete(`/stop/delete-stop/${stopId}`, {
+        headers: {
+            "Authorization": useAuthStore.getState().accessToken
+        }
+    });
+    return response.data;
+}
+
+export const getStops=async()=>{
+    const response = await axiosInstance.get("/stop/get-stops", {
+        headers: {
+            "Authorization": useAuthStore.getState().accessToken
+        }
+    });
+    return response.data.stops;
+}
