@@ -13,9 +13,9 @@ export function QuickActions() {
                 Add Stops
             </Button>
             <Button
-            onClick={()=> router.push("/get-stops")}
+            onClick={()=> router.push("/update-stops")}
             >
-                Get Stops
+                Update Stops
             </Button>
         </div>
     )
