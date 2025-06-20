@@ -8,9 +8,14 @@ export function QuickActions() {
     return (
         <div>
             <Button
-            onClick={()=> router.push("/stops")}
+            onClick={()=> router.push("/add-stops")}
             >
                 Add Stops
+            </Button>
+            <Button
+            onClick={()=> router.push("/get-stops")}
+            >
+                Get Stops
             </Button>
         </div>
     )
