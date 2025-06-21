@@ -17,6 +17,9 @@
   "exports": {
     "./lib/device": "./src/lib/device.ts",
     "./schemas/auth": "./src/schemas/auth.ts",
-    "./lib/axios":"./src/lib/axios.ts"
+    "./lib/axios": "./src/lib/axios.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20"
   }
 }

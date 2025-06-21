@@ -135,6 +135,10 @@ importers:
       zod:
         specifier: ^3.24.2
         version: 3.25.67
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.1
 
   packages/typescript-config: {}
 
