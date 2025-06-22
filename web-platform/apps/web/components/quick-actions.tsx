@@ -17,6 +17,11 @@ export function QuickActions() {
             >
                 Update Stops
             </Button>
+            <Button
+            onClick={()=> router.push("/add-routes")}
+            >
+                Add Routes
+            </Button>
         </div>
     )
 }

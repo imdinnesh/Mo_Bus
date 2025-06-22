@@ -1,5 +1,6 @@
 import { addRoute, addRoutePayload, deleteRoute, getRouteById, getRoutes, updateRoute, updateRoutePayload } from "@/api/route"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner";
 
 export const useGetRoutes = () => {
     return useQuery({
@@ -21,8 +22,12 @@ export const useAddRoute = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: addRoutePayload) => addRoute(payload),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["routes"] });
+      toast.success(data.message || "Route added successfully!");
+    },
+    onError: (error:any) => {
+      toast.error(error.response.data.error || "An error occurred while adding the route.");
     },
   });
 };
