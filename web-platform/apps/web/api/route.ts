@@ -41,6 +41,7 @@ export const getRouteById = async (routeId: string) => {
 export const updateRouteSchema = z.object({
     route_number: z.string().min(1, "Route number is required"),
     route_name: z.string().min(1, "Route name is required"),
+    direction: z.number().min(1, "Direction is required")
 });
 
 export type updateRoutePayload = z.infer<typeof updateRouteSchema>;

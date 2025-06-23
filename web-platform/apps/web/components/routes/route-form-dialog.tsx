@@ -5,11 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-import {
-  addRouteSchema,
-  updateRouteSchema,
-  addRoutePayload,
-} from "@/api/route";
+import { addRoutePayload } from "@/api/route";
 
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -37,7 +33,11 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select";
 import { toast } from "sonner";
-import { useAddRoute, useGetRouteById, useUpdateRoute } from "@/hooks/route-hooks";
+import {
+  useAddRoute,
+  useGetRouteById,
+  useUpdateRoute,
+} from "@/hooks/route-hooks";
 
 interface RouteFormDialogProps {
   isOpen: boolean;
@@ -45,17 +45,27 @@ interface RouteFormDialogProps {
   routeId?: string | null;
 }
 
+// The form schema now requires all fields for both add and edit operations.
+// z.coerce.number() is used to automatically convert the string from the Select input to a number.
 const formSchema = z.object({
-  route_number: z.string().optional(),
-  route_name: z.string().optional(),
-  direction: z.number().optional(),
+  route_number: z.string().min(1, "Route number is required"),
+  route_name: z.string().min(1, "Route name is required"),
+  direction: z.coerce
+    .number({ invalid_type_error: "Direction is required" })
+    .min(1, "Direction must be selected"),
 });
 type FormValues = z.infer<typeof formSchema>;
 
-export function RouteFormDialog({ isOpen, onClose, routeId }: RouteFormDialogProps) {
+export function RouteFormDialog({
+  isOpen,
+  onClose,
+  routeId,
+}: RouteFormDialogProps) {
   const isEditMode = !!routeId;
 
-  const { data: routeData, isLoading: isRouteLoading } = useGetRouteById(routeId!);
+  const { data: routeData, isLoading: isRouteLoading } = useGetRouteById(
+    routeId!
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -87,21 +97,21 @@ export function RouteFormDialog({ isOpen, onClose, routeId }: RouteFormDialogPro
 
   const onSubmit = (values: FormValues) => {
     if (isEditMode) {
-      updateMutation.mutate(values as any, {
+      updateMutation.mutate(values, {
         onSuccess: (data) => {
           toast.success(data.message || "Route updated successfully!");
           onClose();
         },
         onError: (error: any) => {
-           toast.error(error.response?.data?.error || "Failed to update route.");
-        }
+          toast.error(error.response?.data?.error || "Failed to update route.");
+        },
       });
     } else {
       addMutation.mutate(values as addRoutePayload, {
         onSuccess: () => {
           // The hook already shows a toast, so we just close the dialog
           onClose();
-        }
+        },
         // onError is handled by the hook
       });
     }
@@ -122,10 +132,13 @@ export function RouteFormDialog({ isOpen, onClose, routeId }: RouteFormDialogPro
         </DialogHeader>
 
         {isEditMode && isRouteLoading ? (
-            <div className="py-8 text-center">Loading route data...</div>
+          <div className="py-8 text-center">Loading route data...</div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4 py-4"
+            >
               <FormField
                 control={form.control}
                 name="route_number"
@@ -133,7 +146,11 @@ export function RouteFormDialog({ isOpen, onClose, routeId }: RouteFormDialogPro
                   <FormItem>
                     <FormLabel>Route Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., 42C" {...field} className="bg-neutral-900 border-neutral-700 focus:ring-neutral-500" />
+                      <Input
+                        placeholder="e.g., 42C"
+                        {...field}
+                        className="bg-neutral-900 border-neutral-700 focus:ring-neutral-500"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -146,37 +163,50 @@ export function RouteFormDialog({ isOpen, onClose, routeId }: RouteFormDialogPro
                   <FormItem>
                     <FormLabel>Route Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Broadway - Downtown" {...field} className="bg-neutral-900 border-neutral-700 focus:ring-neutral-500" />
+                      <Input
+                        placeholder="e.g., Broadway - Downtown"
+                        {...field}
+                        className="bg-neutral-900 border-neutral-700 focus:ring-neutral-500"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              {!isEditMode && (
-                <FormField
-                  control={form.control}
-                  name="direction"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Direction</FormLabel>
-                      <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={field.value?.toString()}>
-                        <FormControl>
-                          <SelectTrigger className="bg-neutral-900 border-neutral-700">
-                            <SelectValue placeholder="Select a direction" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="bg-neutral-900 border-neutral-700 text-foreground">
-                          <SelectItem value="1">1 - Up</SelectItem>
-                          <SelectItem value="2">2 - Down</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+              {/* This field is now visible in both "Add" and "Edit" modes */}
+              <FormField
+                control={form.control}
+                name="direction"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Direction</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value?.toString()}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-neutral-900 border-neutral-700">
+                          <SelectValue placeholder="Select a direction" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-neutral-900 border-neutral-700 text-foreground">
+                        <SelectItem value="1">1 - Up</SelectItem>
+                        <SelectItem value="2">2 - Down</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={onClose} disabled={isMutating}>Cancel</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isMutating}
+                >
+                  Cancel
+                </Button>
                 <Button type="submit" disabled={isMutating}>
                   {isMutating ? "Saving..." : "Save Changes"}
                 </Button>
