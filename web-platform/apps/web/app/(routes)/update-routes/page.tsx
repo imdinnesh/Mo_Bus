@@ -1,28 +1,16 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { PlusCircle, Search, MoreHorizontal, Edit, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-
-import { Route } from "@/types/route.types";
-
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card";
+import { useState, useMemo, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
+  useGetRoutes,
+  useDeleteRoute,
+} from "@/hooks/route-hooks";
+
+
+// Shadcn UI & Icons
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,194 +20,323 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog";
-import { Skeleton } from "@workspace/ui/components/skeleton";
-import { useDeleteRoute, useGetRoutes } from "@/hooks/route-hooks";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Badge } from "@workspace/ui/components/badge";
+import { toast } from "sonner";
+import {
+  Route as RouteIcon,
+  Loader2,
+  Pencil,
+  PlusCircle,
+  Trash2,
+  XCircle,
+  Search,
+  X,
+  MoreHorizontal,
+  ArrowUpDown,
+} from "lucide-react";
 import { RouteFormDialog } from "@/components/routes/route-form-dialog";
 
-
-// Helper to format direction
-const formatDirection = (direction: 1 | 2) => {
-  return direction === 1 ? "Up" : "Down";
+// --- Type Definitions ---
+type Route = {
+  id: number;
+  route_number: string;
+  route_name: string;
+  direction: number;
 };
+type SortField = "route_number" | "route_name";
+type SortDirection = "asc" | "desc";
 
+// --- Reusable Table Row Component ---
+function RouteTableRow({
+  route,
+  index,
+  onEdit,
+  onActionSuccess,
+}: {
+  route: Route;
+  index: number;
+  onEdit: (id: string) => void;
+  onActionSuccess: () => void;
+}) {
+  const deleteRouteMutation = useDeleteRoute();
+
+  const handleDelete = useCallback(() => {
+    deleteRouteMutation.mutate(route.id.toString(), {
+      onSuccess: (data) => {
+        toast.success(data.message || "Route deleted successfully!");
+        onActionSuccess();
+      },
+      onError: (error: any) => {
+        toast.error(error.response?.data?.error || "Failed to delete route.");
+      },
+    });
+  }, [deleteRouteMutation, route.id, onActionSuccess]);
+
+  // In your RouteTableRow component
+
+  const directionInfo = {
+    1: {
+      text: "Towards the center",
+      // "Filled" look: Uses the foreground color as the background
+      className: "bg-foreground text-background border-transparent hover:bg-foreground/80"
+    },
+    2: {
+      text: "Away from the center",
+      // Standard "outline" look
+      className: "text-muted-foreground border-border"
+    },
+  }[route.direction] || { text: "N/A", className: "bg-muted text-muted-foreground" };
+
+  return (
+    <TableRow className="group hover:bg-muted/30 transition-colors">
+      <TableCell className="w-[60px] text-center font-medium text-muted-foreground py-3">{index + 1}</TableCell>
+      <TableCell className="w-[120px] font-mono text-center">
+        <Badge variant="outline">{route.route_number}</Badge>
+      </TableCell>
+      <TableCell className="font-medium py-3">{route.route_name}</TableCell>
+      <TableCell className="w-[100px] text-center">
+        <Badge variant="outline" className={directionInfo.className}>{directionInfo.text}</Badge>
+      </TableCell>
+      <TableCell className="w-[80px] text-center py-3">
+        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon"><MoreHorizontal className="h-5 w-5" /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => onEdit(route.id.toString())}>
+                <Pencil className="mr-2 h-4 w-4" />Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                    <Trash2 className="mr-2 h-4 w-4" />Delete
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the route: <br />
+                      <span className="font-bold">{route.route_number} - {route.route_name}</span>.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} disabled={deleteRouteMutation.isPending} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      {deleteRouteMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Yes, delete it
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
+// --- Main Page Component ---
 export default function RoutesPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isFormOpen, setFormOpen] = useState(false);
-  const [isAlertOpen, setAlertOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { data: response, isLoading, error } = useGetRoutes();
+  const routes = response?.routes || [];
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ field: SortField; direction: SortDirection }>({ field: 'route_number', direction: 'asc' });
+
+  // State for controlling the Add/Edit dialog
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
-  const [routeToDelete, setRouteToDelete] = useState<string | null>(null);
 
-  const { data, isLoading, isError, error } = useGetRoutes();
-  const deleteMutation = useDeleteRoute();
+  const handleActionSuccess = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["get-routes"] });
+  }, [queryClient]);
 
-  const filteredRoutes = useMemo(() => {
-    if (!data?.routes) return [];
-    return data.routes.filter(
-      (route) =>
-        route.route_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        route.route_number.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [data, searchTerm]);
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setSelectedRouteId(null);
+    handleActionSuccess(); // Refresh data on close
+  };
 
   const handleAddNew = () => {
     setSelectedRouteId(null);
-    setFormOpen(true);
+    setIsFormOpen(true);
   };
 
-  const handleEdit = (routeId: string) => {
-    setSelectedRouteId(routeId);
-    setFormOpen(true);
+  const handleEdit = (id: string) => {
+    setSelectedRouteId(id);
+    setIsFormOpen(true);
   };
 
-  const handleDelete = (routeId: string) => {
-    setRouteToDelete(routeId);
-    setAlertOpen(true);
-  };
+  const filteredAndSortedRoutes = useMemo(() => {
+    if (!routes) return [];
 
-  const confirmDelete = () => {
-    if (routeToDelete) {
-      deleteMutation.mutate(routeToDelete, {
-        onSuccess: (data) => {
-          toast.success(data.message || "Route deleted successfully!");
-          setRouteToDelete(null);
-        },
-        onError: (error: any) => {
-          toast.error(error.response?.data?.error || "Failed to delete route.");
-        },
-      });
-    }
-  };
+    const filtered = routes.filter((route: Route) =>
+      route.route_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      route.route_number.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const renderTableContent = () => {
-    if (isLoading) {
-      return Array.from({ length: 5 }).map((_, index) => (
-        <TableRow key={index} className="border-neutral-800">
-          <TableCell><Skeleton className="h-4 w-16 bg-neutral-800" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-48 bg-neutral-800" /></TableCell>
-          <TableCell><Skeleton className="h-4 w-12 bg-neutral-800" /></TableCell>
-          <TableCell><Skeleton className="h-8 w-8 bg-neutral-800" /></TableCell>
-        </TableRow>
-      ));
-    }
-    
-    if (isError) {
-      return (
-        <TableRow>
-          <TableCell colSpan={4} className="text-center text-red-400 py-10">
-            Error loading routes: {error?.message}
-          </TableCell>
-        </TableRow>
-      );
-    }
-    
-    if (filteredRoutes.length === 0) {
-      return (
-        <TableRow>
-          <TableCell colSpan={4} className="text-center text-neutral-400 py-10">
-            No routes found.
-          </TableCell>
-        </TableRow>
-      );
-    }
+    filtered.sort((a: Route, b: Route) => {
+      const aValue = a[sortConfig.field];
+      const bValue = b[sortConfig.field];
+      const comparison = String(aValue).localeCompare(String(bValue), undefined, { numeric: true });
+      return sortConfig.direction === "asc" ? comparison : -comparison;
+    });
 
-    return filteredRoutes.map((route: Route) => (
-      <TableRow key={route.id} className="border-neutral-800 hover:bg-neutral-900/50">
-        <TableCell className="font-medium">{route.route_number}</TableCell>
-        <TableCell>{route.route_name}</TableCell>
-        <TableCell className="text-neutral-400">{formatDirection(route.direction)}</TableCell>
-        <TableCell>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-neutral-950 border-neutral-800 text-white">
-              <DropdownMenuItem onSelect={() => handleEdit(String(route.id))}>
-                <Edit className="mr-2 h-4 w-4" />
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => handleDelete(String(route.id))} className="text-red-500 focus:text-white focus:bg-red-500">
-                <Trash2 className="mr-2 h-4 w-4" />
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </TableCell>
-      </TableRow>
-    ));
-  };
-  
+    return filtered;
+  }, [routes, searchQuery, sortConfig]);
+
+  const handleSort = useCallback((field: SortField) => {
+    setSortConfig(current => ({
+      field,
+      direction: current.field === field && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  }, []);
+
+  const clearSearch = useCallback(() => setSearchQuery(""), []);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-4">
+        <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+        <p className="text-lg text-muted-foreground">Loading Routes...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center p-4">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <div className="mx-auto bg-destructive/10 p-3 rounded-full">
+              <XCircle className="w-10 h-10 text-destructive" />
+            </div>
+            <CardTitle className="mt-4 text-destructive">Failed to Load Routes</CardTitle>
+            <CardDescription className="text-destructive/80">
+              There was an error fetching data.
+              <p className="mt-4 text-xs font-mono p-2 bg-destructive/5 rounded border border-destructive/20 text-destructive/80">{error.message}</p>
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-black min-h-screen text-white p-4 sm:p-6 lg:p-8">
-      <main className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">Routes Management</h1>
-          <Button onClick={handleAddNew} className="bg-white text-black hover:bg-neutral-200">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Route
-          </Button>
+    // Core layout: flex column filling the screen
+    <main className="flex h-screen flex-col gap-4 p-4 lg:p-6">
+      <header className="flex flex-shrink-0 items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="bg-primary/10 p-2 rounded-lg">
+            <RouteIcon className="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold">Bus Routes</h1>
+            <p className="text-muted-foreground">Manage all registered bus routes.</p>
+          </div>
+        </div>
+        <Button onClick={handleAddNew}>
+          <PlusCircle className="mr-2 h-4 w-4" />Add Route
+        </Button>
+      </header>
+
+      {/* Card now acts as the main container for the list, growing to fill space */}
+      <Card className="flex flex-1 flex-col overflow-hidden">
+        {/* Toolbar: Search and Filter (fixed, does not scroll) */}
+        <div className="flex flex-col gap-4 border-b p-4 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search by route name or number..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 pr-10" />
+            {searchQuery && <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7" onClick={clearSearch}><X className="h-4 w-4" /></Button>}
+          </div>
+          <div className="flex items-center gap-2">
+            {routes && <Badge variant="secondary">{filteredAndSortedRoutes.length} / {routes.length}</Badge>}
+          </div>
         </div>
 
-        <Card className="bg-neutral-950 border-neutral-800">
-          <CardHeader>
-            <CardTitle>All Routes</CardTitle>
-             <div className="mt-4 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
-              <Input
-                placeholder="Search by name or number..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full md:w-1/3 pl-9 bg-neutral-900 border-neutral-700 focus:ring-neutral-500"
-              />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-neutral-800 hover:bg-transparent">
-                  <TableHead className="w-[120px]">Route #</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead className="w-[100px]">Direction</TableHead>
-                  <TableHead className="w-[80px] text-right">Actions</TableHead>
+        {/* Scrollable area for the table */}
+        <CardContent className="flex-1 overflow-y-auto p-0">
+          <Table>
+            {/* Sticky header stays visible on scroll */}
+            <TableHeader className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm">
+              <TableRow>
+                <TableHead className="w-[60px] text-center">#</TableHead>
+                <TableHead className="w-[120px] cursor-pointer" onClick={() => handleSort('route_number')}>
+                  <div className="flex items-center justify-center gap-2">
+                    Route No. <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </TableHead>
+                <TableHead className="cursor-pointer" onClick={() => handleSort('route_name')}>
+                  <div className="flex items-center gap-2">
+                    Route Name <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </TableHead>
+                <TableHead className="w-[100px] text-center">Direction</TableHead>
+                <TableHead className="w-[80px] text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredAndSortedRoutes.length > 0 ? (
+                filteredAndSortedRoutes.map((route, index) => (
+                  <RouteTableRow
+                    key={route.id}
+                    route={route}
+                    index={index}
+                    onEdit={handleEdit}
+                    onActionSuccess={handleActionSuccess}
+                  />
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-[50vh]">
+                    <div className="flex flex-col items-center justify-center gap-4 text-center">
+                      {searchQuery ? (
+                        <>
+                          <Search className="h-12 w-12 text-muted-foreground/30" />
+                          <h3 className="text-lg font-semibold">No Results Found</h3>
+                          <p className="text-muted-foreground">Your search for "{searchQuery}" did not return any routes.</p>
+                          <Button variant="outline" size="sm" onClick={clearSearch}>Clear Search</Button>
+                        </>
+                      ) : (
+                        <>
+                          <RouteIcon className="h-12 w-12 text-muted-foreground/30" />
+                          <h3 className="text-lg font-semibold">No Routes Added Yet</h3>
+                          <p className="text-muted-foreground">Get started by adding your first bus route.</p>
+                          <Button onClick={handleAddNew}><PlusCircle className="mr-2 h-4 w-4" />Add First Route</Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {renderTableContent()}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      </main>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {/* Add/Edit Dialog */}
-      <RouteFormDialog
-        isOpen={isFormOpen}
-        onClose={() => setFormOpen(false)}
-        routeId={selectedRouteId}
-      />
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={isAlertOpen} onOpenChange={setAlertOpen}>
-        <AlertDialogContent className="bg-neutral-950 border-neutral-800 text-white">
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription className="text-neutral-400">
-              This action cannot be undone. This will permanently delete the route from the servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-transparent border-neutral-700 hover:bg-neutral-800">
-                Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700 text-white">
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+      {/* The Add/Edit Dialog */}
+      {isFormOpen && (
+        <RouteFormDialog
+          isOpen={isFormOpen}
+          onClose={handleCloseForm}
+          routeId={selectedRouteId}
+        />
+      )}
+    </main>
   );
 }

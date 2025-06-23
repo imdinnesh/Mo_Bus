@@ -22,6 +22,11 @@ export function QuickActions() {
             >
                 Add Routes
             </Button>
+            <Button
+            onClick={()=> router.push("/update-routes")}
+            >
+                Update Routes
+            </Button>
         </div>
     )
 }
