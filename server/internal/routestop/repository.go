@@ -14,6 +14,7 @@ type Repository interface {
 	UpdateRouteStop(routeStopID string,stopIndex uint) error
 	DeleteRouteStop(routeStopID string) error
 	ValidRouteStop(routeStopID string) (bool, error)
+	ViewRouteStops(routeID uint) ([]models.RouteStop, error)
 }
 
 type repository struct {
@@ -84,6 +85,14 @@ func (r *repository) ValidRouteStop(routeStopID string) (bool, error) {
 	return true, nil
 }
 
+func (r *repository) ViewRouteStops(routeID uint) ([]models.RouteStop, error) {
+	var routeStops []models.RouteStop
+	err := r.db.Model(&models.RouteStop{}).Preload("Route").Preload("Stop").Where("route_id = ?", routeID).Find(&routeStops).Error
+	if err != nil {
+		return nil, err
+	}
+	return routeStops, nil
+}
 
 
 

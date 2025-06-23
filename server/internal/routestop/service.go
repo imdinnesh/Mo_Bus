@@ -9,6 +9,7 @@ type Service interface {
 	AddRouteStop(routeStop *AddRouteStopRequest) (*AddRouteStopResponse,error)
 	UpdateRouteStop(routeStopID string,request *UpdateRouteStopRequest) (*UpdateRouteStopResponse,error)
 	DeleteRouteStop(routeStopID string) (*DeleteRouteStopResponse,error)
+	ViewRouteStops(routeID uint) (*GetRouteStopsResponse, error)
 }
 
 type service struct {
@@ -84,6 +85,52 @@ func (s *service) DeleteRouteStop(routeStopID string) (*DeleteRouteStopResponse,
 	return &DeleteRouteStopResponse{
 		Status: "success",
 		Message: "Route stop deleted successfully",
+	},nil
+}
+
+func (s *service) ViewRouteStops(routeID uint) (*GetRouteStopsResponse, error) {
+	validRouteId,err:=s.repo.ValidRouteId(routeID)
+	if err!=nil{
+		return nil,apierror.New("Invalid route ID",http.StatusBadRequest)
+	}
+	if !validRouteId {
+		return nil,apierror.New("Invalid route ID",http.StatusBadRequest)
+	}
+
+	routeStops,err:=s.repo.ViewRouteStops(routeID)
+	if err!=nil{
+		return nil,apierror.New("Failed to view route stops",http.StatusInternalServerError)
+	}
+
+	if len(routeStops) == 0 {
+		return &GetRouteStopsResponse{
+			Status:  "success",
+			Message: "No route stops found",
+			RouteStops: []RouteStop{},
+		},nil
+	}
+
+	response:= &GetRouteStopsResponse{
+		RouteStops: make([]RouteStop, len(routeStops)),
+	}
+
+	for i, routeStop := range routeStops {
+		response.RouteStops[i] = RouteStop{
+			ID:        routeStop.ID,
+			RouteID:   routeStop.RouteID,
+			StopID:    routeStop.StopID,
+			StopIndex: routeStop.StopIndex,
+			Stop: Stop{
+				ID:       routeStop.Stop.ID,
+				StopName: routeStop.Stop.StopName,
+			},
+		}
+	}
+
+	return &GetRouteStopsResponse{
+		Status: "success",
+		Message: "Route stops retrieved successfully",
+		RouteStops: response.RouteStops,
 	},nil
 }
 

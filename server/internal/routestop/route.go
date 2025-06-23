@@ -15,4 +15,5 @@ func RegisterRoutes(r *gin.RouterGroup, db *gorm.DB) {
 	routeStops.POST("/add-route-stop", handler.AddRouteStop)
 	routeStops.PUT("/update-route-stop/:id", handler.UpdateRouteStop)
 	routeStops.DELETE("/delete-route-stop/:id", handler.DeleteRouteStop)
+	routeStops.GET("/view-route-stops/:route_id", handler.GetRouteStops)
 }
