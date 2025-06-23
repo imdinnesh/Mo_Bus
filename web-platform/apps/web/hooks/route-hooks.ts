@@ -1,14 +1,14 @@
 import { addRoute, addRoutePayload, deleteRoute, getRouteById, getRoutes, updateRoute, updateRoutePayload } from "@/api/route"
+import { DefaultResponse, GetRoutesResponse } from "@/types/route.types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner";
 
 export const useGetRoutes = () => {
-    return useQuery({
-        queryKey: ["routes"],
-        queryFn: getRoutes,
-    });
+  return useQuery<GetRoutesResponse>({
+    queryKey: ["routes"],
+    queryFn: getRoutes,
+  });
 };
-
 
 export const useGetRouteById = (routeId: string) => {
   return useQuery({
@@ -20,7 +20,7 @@ export const useGetRouteById = (routeId: string) => {
 
 export const useAddRoute = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<DefaultResponse, Error, addRoutePayload>({
     mutationFn: (payload: addRoutePayload) => addRoute(payload),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["routes"] });
@@ -34,7 +34,7 @@ export const useAddRoute = () => {
 
 export const useUpdateRoute = (routeId: string) => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<DefaultResponse, Error, updateRoutePayload>({
     mutationFn: (payload: updateRoutePayload) => updateRoute(routeId, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes"] });
@@ -45,7 +45,7 @@ export const useUpdateRoute = (routeId: string) => {
 
 export const useDeleteRoute = () => {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useMutation<DefaultResponse, Error, string>({
     mutationFn: (routeId: string) => deleteRoute(routeId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["routes"] });
