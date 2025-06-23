@@ -256,7 +256,7 @@ export default function RoutesPage() {
       </header>
 
       {/* Card now acts as the main container for the list, growing to fill space */}
-      <Card className="flex flex-1 flex-col overflow-hidden">
+      <Card className="flex flex-1 flex-col overflow-hidden px-4">
         {/* Toolbar: Search and Filter (fixed, does not scroll) */}
         <div className="flex flex-col gap-4 border-b p-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
