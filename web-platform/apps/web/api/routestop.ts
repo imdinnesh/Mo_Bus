@@ -2,6 +2,7 @@ import { axiosInstance } from "@workspace/shared/lib/axios";
 import { useAuthStore } from "@/store/auth-store";
 import { DefaultResponse } from "@/types/route.types";
 import { z } from "zod";
+import { RouteStopsResponse } from "@/types/routestops.types";
 
 export const addRouteStopSchema = z.object({
     route_id:z.number().min(1, "Route ID is required"),
@@ -37,6 +38,15 @@ export const updateRouteStop = async (routeStopId: string, payload: updateRouteS
 
 export const deleteRouteStop = async (routeStopId: string): Promise<DefaultResponse> => {
     const response = await axiosInstance.delete(`/route-stop/delete-route-stop/${routeStopId}`, {
+        headers: {
+            "Authorization": useAuthStore.getState().accessToken
+        }
+    });
+    return response.data;
+}
+
+export const getRouteStops = async (routeId: string): Promise<RouteStopsResponse> => {
+    const response = await axiosInstance.get(`/route-stop/view-route-stops/${routeId}`, {
         headers: {
             "Authorization": useAuthStore.getState().accessToken
         }

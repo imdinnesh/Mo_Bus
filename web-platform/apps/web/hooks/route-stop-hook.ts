@@ -1,4 +1,4 @@
-import { addRouteStop, addRouteStopPayload, deleteRouteStop, updateRouteStop, updateRouteStopPayload } from "@/api/routestop"
+import { addRouteStop, addRouteStopPayload, deleteRouteStop, getRouteStops, updateRouteStop, updateRouteStopPayload } from "@/api/routestop"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 export const useAddRouteStop = (routeId: string) => {
@@ -28,5 +28,14 @@ export const useDeleteRouteStop = (routeId: string) => {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["route", routeId] })
         }
+    })
+}
+
+export const useGetRouteStops = (routeId: string) => {
+    return useQuery({
+        queryKey: ["route", routeId],
+        queryFn: () => getRouteStops(routeId),
+        enabled: !!routeId,
+        refetchOnWindowFocus: false,
     })
 }
