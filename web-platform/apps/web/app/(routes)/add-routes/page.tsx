@@ -101,7 +101,7 @@ export default function AddRoutePage() {
                         <FormLabel>Route Name</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g., Downtown Express"
+                            placeholder="Nandankanan to Railway Station"
                             {...field}
                             disabled={mutation.isPending}
                           />
@@ -122,7 +122,7 @@ export default function AddRoutePage() {
                       <FormItem>
                         <FormLabel>Route Number</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., 101, A1" {...field} disabled={mutation.isPending} />
+                          <Input placeholder="e.g., 11, 10" {...field} disabled={mutation.isPending} />
                         </FormControl>
                         <FormDescription className="text-neutral-500 dark:text-neutral-400">
                           The official identifier used in schedules.
