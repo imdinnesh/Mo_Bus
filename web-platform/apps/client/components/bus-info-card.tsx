@@ -1,10 +1,9 @@
-// components/bus-info-card.tsx
 "use client";
 
 import Link from "next/link";
 import { NearbyBus } from "@/hooks/use-nearby-buses";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@workspace/ui/components/card";
+import { Button } from "@workspace/ui/components/button";
 import { Bus, Route, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "@/utils/distance.utils";

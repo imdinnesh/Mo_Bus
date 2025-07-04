@@ -1,8 +1,8 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Button } from "./ui/button"
-import { Card, CardHeader, CardContent, CardTitle } from "./ui/card"
+import { Button } from "@workspace/ui/components/button"
+import { Card, CardHeader, CardContent, CardTitle } from "@workspace/ui/components/card"
 import { Ticket } from "lucide-react"
 import { useState } from "react"
 
