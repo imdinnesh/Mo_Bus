@@ -1,7 +1,7 @@
 // src/components/ticket-action-card.tsx
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@workspace/ui/components/button";
 import { useRouter } from "next/navigation";
 import { Ticket } from "lucide-react";
 import { motion } from "framer-motion";

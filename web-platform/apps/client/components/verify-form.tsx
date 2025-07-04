@@ -5,11 +5,9 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { z } from "zod"
-import { otpSchema } from "@/schemas/auth"
 import { toast } from "sonner"
 import { RefreshCw, Clock, Mail, CheckCircle2, AlertCircle } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
+import { Button } from "@wo"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from "@/components/ui/form"
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -31,6 +29,7 @@ import {
   OTP_VALIDITY_DURATION,
   RESEND_COOLDOWN_DURATION,
 } from "@/utils/auth.utils"
+import { otpSchema } from "@workspace/shared/schemas/auth"
 
 export function VerifyForm() {
   const [timeRemaining, setTimeRemaining] = useState(0)

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "./ui/button";
+import { Button } from "@workspace/ui/components/button";
 import { useRouter } from "next/navigation";
 import { Ticket } from "lucide-react";
 import { motion } from "framer-motion";

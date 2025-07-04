@@ -3,12 +3,12 @@
 import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SearchFormValues, SearchSchema } from "@/schemas/trip";
+import { SearchFormValues, SearchSchema } from "@workspace/shared/schemas/trip";
 import { useTripStore } from "@/store/useTripStore";
 import { useRouter } from "next/navigation";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import { Card, CardContent, CardHeader } from "./ui/card";
+import { Input } from "@workspace/ui/components/input";
+import { Button } from "@workspace/ui/components/button";
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card";
 import { useStops } from "@/hooks/useStops";
 import { useRoutes } from "@/hooks/useRoutes";
 import Fuse from "fuse.js";
