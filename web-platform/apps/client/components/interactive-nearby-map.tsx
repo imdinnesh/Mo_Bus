@@ -5,7 +5,7 @@ import { Marker, Popup, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import React, { useEffect } from "react";
 import { Move, LocateFixed, Loader2 } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "@workspace/ui/components/button";
 import { NearbyBus } from "@/hooks/use-nearby-buses";
 
 type Coords = { latitude: number; longitude: number };

@@ -1,7 +1,7 @@
 "use client"
 
-import { Card, CardContent } from "./ui/card"
-import { Button } from "./ui/button"
+import { Card, CardContent } from "@workspace/ui/components/card"
+import { Button } from "@workspace/ui/components/button"
 import { Search } from "lucide-react"
 import { useRouter } from "next/navigation"
 

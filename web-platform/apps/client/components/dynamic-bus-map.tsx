@@ -1,6 +1,6 @@
 "use client"
 import dynamic from 'next/dynamic'
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 
 const DynamicBusMap = dynamic(() => import('@/components/bus-map'), {

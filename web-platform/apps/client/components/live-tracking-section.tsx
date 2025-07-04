@@ -6,9 +6,9 @@ import { useState } from "react"
 import { useBusDetails } from "@/hooks/useBusDetails"
 import DynamicBusMap from "./dynamic-bus-map"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Map, Bus, AlertTriangle, WifiOff, LoaderCircle } from "lucide-react"
 
 // Define the Bus type again for this component's props

@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Button } from "./ui/button";
+import { Button } from "@workspace/ui/components/button";
 import { 
     Card, 
     CardHeader, 
@@ -8,7 +8,7 @@ import {
     CardDescription, 
     CardContent,
     CardFooter
-} from "./ui/card";
+} from "@workspace/ui/components/card";
 import { MapPin } from "lucide-react";
 
 export function NearbyBuses() {
