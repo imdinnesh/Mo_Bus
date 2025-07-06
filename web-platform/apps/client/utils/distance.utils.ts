@@ -1,11 +1,3 @@
-// lib/utils.ts
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
-
 // NEW FUNCTION TO ADD
 export function formatDistanceToNow(date: Date): string {
     const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);

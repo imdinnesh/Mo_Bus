@@ -7,13 +7,13 @@ import { useRouter, useSearchParams } from "next/navigation"
 import type { z } from "zod"
 import { toast } from "sonner"
 import { RefreshCw, Clock, Mail, CheckCircle2, AlertCircle } from "lucide-react"
-import { Button } from "@wo"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from "@/components/ui/form"
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@workspace/ui/components/button";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormMessage } from "@workspace/ui/components/form"
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@workspace/ui/components/input-otp"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import { Badge } from "@workspace/ui/components/badge"
+import { Separator } from "@workspace/ui/components/separator"
+import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 
 import { useMutation } from "@tanstack/react-query"
 import { otpResend, otpverify } from "@/api/auth"
@@ -31,6 +31,8 @@ import {
 } from "@/utils/auth.utils"
 import { otpSchema } from "@workspace/shared/schemas/auth"
 
+type OtpFormData = { otp: string }
+
 export function VerifyForm() {
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [resendCooldown, setResendCooldown] = useState(0)
@@ -40,7 +42,7 @@ export function VerifyForm() {
 
   const searchParams = useSearchParams()
   const email = searchParams.get("email")
-  const form = useForm<z.infer<typeof otpSchema>>({
+  const form = useForm<OtpFormData>({
     resolver: zodResolver(otpSchema),
     defaultValues: { otp: "" },
   })
@@ -120,7 +122,7 @@ export function VerifyForm() {
     resendMutation.mutate({ email })
   }
 
-  const onSubmit = (data: z.infer<typeof otpSchema>) => {
+  const onSubmit = (data: OtpFormData) => {
     if (timeRemaining <= 0) {
       toast.error("OTP has expired. Please request a new one.")
       return

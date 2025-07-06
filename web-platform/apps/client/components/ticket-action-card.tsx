@@ -5,7 +5,7 @@ import { Button } from "@workspace/ui/components/button";
 import { useRouter } from "next/navigation";
 import { Ticket } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@workspace/ui/lib/utils";
 
 export function TicketActionCard() {
     const router = useRouter();

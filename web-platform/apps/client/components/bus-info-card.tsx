@@ -5,7 +5,7 @@ import { NearbyBus } from "@/hooks/use-nearby-buses";
 import { Card, CardContent } from "@workspace/ui/components/card";
 import { Button } from "@workspace/ui/components/button";
 import { Bus, Route, Clock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@workspace/ui/lib/utils";
 import { formatDistanceToNow } from "@/utils/distance.utils";
 
 interface BusInfoCardProps extends React.ComponentProps<typeof Card> {
