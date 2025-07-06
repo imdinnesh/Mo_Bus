@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { loginSchema, LoginFormValues } from "@workspace/shared/schemas/auth"
 import { useMutation } from "@tanstack/react-query"
 import { login } from "@/api/auth"
-import { getDeviceId } from "@/lib/device"
+import { getDeviceId } from "@workspace/shared/lib/device"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
