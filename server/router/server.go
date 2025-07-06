@@ -19,6 +19,7 @@ func New(cfg *config.Config, db *gorm.DB) *gin.Engine {
 				"http://localhost:3001":     true,
 				"https://mo-bus.vercel.app": true,
 				"https://mo-bus-platform.vercel.app": true,
+				"https://mo-bus-client.vercel.app":true,
 			}
 			return allowed[origin]
 		},
