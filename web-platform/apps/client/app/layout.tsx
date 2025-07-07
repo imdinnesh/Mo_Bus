@@ -2,8 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { Toaster } from "sonner"
-import { Providers } from "@/components/providers"
 import ReactQueryProvider from "@/providers/reactQueryProvider"
+import { Providers } from "@/components/providers"
 
 const fontSans = Geist({
   subsets: ["latin"],
