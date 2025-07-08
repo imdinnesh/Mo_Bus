@@ -1,5 +1,6 @@
+import { axiosInstance } from '@workspace/shared/lib/axios';
 import { Stop,Route } from '../db/busDB';
-import { axiosInstance } from '@/lib/axios';
+
 
 export async function fetchStopsFromAPI(): Promise<Stop[]> {
   const response=await axiosInstance.get("/stop/get-stops",{

@@ -1,4 +1,4 @@
-import { axiosInstance } from '@/lib/axios';
+import { axiosInstance } from "@workspace/shared/lib/axios";
 
 export const getRoutedetails = async (routeId: string) => {
   const token = localStorage.getItem('accessToken') || '';
