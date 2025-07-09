@@ -41,7 +41,7 @@ export function LoginForm({
       toast.success(data.message || "Login successful!")
       // [----Set Tokens----]
       useAuthStore.getState().setAccessToken(data.access_token);
-      document.cookie = `access_token=${data.access_token}; path=/; max-age=${1 * 30}`;
+      document.cookie = `access_token=${data.access_token}; path=/; max-age=${60 * 30}; Secure; SameSite=Strict`;
       router.push("/dashboard")
     },
     onError: (error: any) => {
