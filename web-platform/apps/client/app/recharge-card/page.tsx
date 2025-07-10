@@ -8,10 +8,10 @@ import { toast } from "sonner";
 import { CirclePlus, Loader2 } from "lucide-react";
 
 import { updateBalance } from "@/api/payment";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card";
 
 // 1. Define the Zod schema. It remains our single source of truth for validation rules.
 // We no longer need z.coerce because react-hook-form will handle the conversion for us.
