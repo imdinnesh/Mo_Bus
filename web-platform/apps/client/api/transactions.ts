@@ -1,4 +1,5 @@
-import { axiosInstance } from "@/lib/axios";
+import { axiosInstance } from "@workspace/shared/lib/axios";
+
 
 export const getBalance=async()=>{
     const token = localStorage.getItem('accessToken') || '';
