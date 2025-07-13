@@ -3,15 +3,17 @@
 import { generateQrode } from "@/api/bookings";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, TicketX } from "lucide-react";
 
 // --- Apple Wallet Style Ticket Page ---
 export default function TicketPageWalletStyle() {
     const [sessionKey, setSessionKey] = useState<string | null>(null);
+    const [isCheckingSession, setIsCheckingSession] = useState(true);
 
     useEffect(() => {
-        setSessionKey(localStorage.getItem("session_key"));
+        const key = localStorage.getItem("session_key");
+        setSessionKey(key);
+        setIsCheckingSession(false);
     }, []);
 
     const { data, isLoading } = useQuery({
@@ -21,6 +23,40 @@ export default function TicketPageWalletStyle() {
         refetchInterval: 5000,
     });
 
+    // While checking localStorage, show a generic loader
+    if (isCheckingSession) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-zinc-200">
+                <Loader2 className="w-10 h-10 animate-spin text-zinc-500" />
+            </div>
+        );
+    }
+
+    // If no session key was found, display a "No Ticket Found" message
+    if (!sessionKey) {
+        return (
+            // The page background now adapts to the theme
+            <div className="flex justify-center items-center min-h-screen bg-zinc-200 dark:bg-zinc-900 p-4 transition-colors duration-300">
+                {/* 
+              The card styles are updated with `dark:` prefixes.
+              - In light mode: bg-white, text-zinc-800
+              - In dark mode: bg-black, text-zinc-100, with a subtle ring for definition
+            */}
+                <div className="relative w-full max-w-xs bg-white dark:bg-black text-zinc-800 dark:text-zinc-100 rounded-2xl shadow-2xl dark:ring-1 dark:ring-white/20 overflow-hidden">
+                    <div className="p-8 text-center flex flex-col items-center gap-4">
+                        <TicketX className="w-12 h-12 text-red-500" />
+                        <h2 className="text-xl font-bold">No Ticket Found</h2>
+                        {/* The paragraph text color also adapts for better readability */}
+                        <p className="text-zinc-600 dark:text-zinc-400 text-sm">
+                            No active session was found. Please purchase a ticket first.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // If a session key exists, render the ticket
     return (
         <div className="flex justify-center items-center min-h-screen bg-zinc-200 p-4">
             <div className="relative w-full max-w-xs bg-black text-white rounded-2xl shadow-2xl overflow-hidden">
@@ -34,14 +70,15 @@ export default function TicketPageWalletStyle() {
                         <RefreshCw className="w-5 h-5 text-zinc-400 animate-spin [animation-duration:5s]" />
                     </div>
                     <p className="mt-4 text-xs text-zinc-500">
-                        Valid for one trip. Session: {sessionKey ? `...${sessionKey.slice(-6)}` : 'N/A'}
+                        Valid for one trip. Session: {`...${sessionKey.slice(-6)}`}
                     </p>
                 </div>
-                
+
                 {/* Perforated Separator with Cutouts */}
                 <div className="relative border-t-2 border-dashed border-zinc-700">
-                    <div className="absolute -top-3 -left-3 w-6 h-6 bg-zinc-800 rounded-full"></div>
-                    <div className="absolute -top-3 -right-3 w-6 h-6 bg-zinc-800 rounded-full"></div>
+                    {/* The cutout effect requires the background color of the parent container */}
+                    <div className="absolute -top-3 -left-3 w-6 h-6 bg-zinc-200 rounded-full"></div>
+                    <div className="absolute -top-3 -right-3 w-6 h-6 bg-zinc-200 rounded-full"></div>
                 </div>
 
                 {/* QR Code Section */}
@@ -55,7 +92,7 @@ export default function TicketPageWalletStyle() {
                         <img
                             src={data.qr_code}
                             alt="Ticket QR Code"
-                            className="w-96 h-64"
+                            className="w-48 h-48" // Corrected to be square for proper QR code display
                         />
                     )}
                 </div>
