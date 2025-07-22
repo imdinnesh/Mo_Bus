@@ -1,4 +1,5 @@
-import { axiosInstance } from '@/lib/axios';
+import { axiosInstance } from "@workspace/shared/lib/axios";
+
 
 interface TripPayload{
     source_id:number,
