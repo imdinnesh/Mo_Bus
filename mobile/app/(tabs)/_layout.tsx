@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { View, StyleSheet, Platform } from 'react-native';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   return (
@@ -23,10 +23,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? 'home' : 'home-outline'}
               size={26}
-              name="house.fill"
               color={focused ? '#FF6A3D' : '#aaa'}
             />
           ),
@@ -37,10 +37,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="payment"
         options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? 'card' : 'card-outline'}
               size={26}
-              name="creditcard.fill"
               color={focused ? '#FF6A3D' : '#aaa'}
             />
           ),
@@ -51,13 +51,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: () => (
             <View style={styles.searchButton}>
-              <IconSymbol
-                size={28}
-                name="magnifyingglass"
-                color="#fff"
-              />
+              <Ionicons name="search" size={28} color="#fff" />
             </View>
           ),
         }}
@@ -67,10 +63,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="notifications"
         options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? 'notifications' : 'notifications-outline'}
               size={26}
-              name="bell.fill"
               color={focused ? '#FF6A3D' : '#aaa'}
             />
           ),
@@ -81,10 +77,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          tabBarIcon: ({ color, focused }) => (
-            <IconSymbol
+          tabBarIcon: ({ focused }) => (
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
               size={26}
-              name="person.fill"
               color={focused ? '#FF6A3D' : '#aaa'}
             />
           ),
