@@ -15,7 +15,7 @@ export default function TabLayout() {
           height: 80,
         },
         tabBarIconStyle: {
-          marginTop: 6,   // moves icons down
+          marginTop: 6,
         },
       }}
     >
