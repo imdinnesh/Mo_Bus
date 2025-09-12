@@ -21,7 +21,7 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 40 }}>
-        
+
         {/* Header */}
         <View style={styles.header}>
           <View>
@@ -43,24 +43,6 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Search History */}
-        <View style={{ marginBottom: 20 }}>
-          <Text style={styles.sectionTitle}>Recent Searches</Text>
-          <FlatList
-            data={history}
-            horizontal
-            keyExtractor={(item) => item.id}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingVertical: 6 }}
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.historyCard} activeOpacity={0.7}>
-                <Ionicons name="time-outline" size={18} color="#555" />
-                <Text style={styles.historyCardText}>{item.title}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <View>
@@ -74,13 +56,20 @@ export default function HomeScreen() {
 
         {/* Active Tickets */}
         <TouchableOpacity style={styles.ticketCard} activeOpacity={0.7}>
-          <Ionicons name="ticket" size={22} color="#fff" />
+          <View style={{ position: 'relative' }}>
+            <Ionicons name="ticket" size={22} color="#fff" />
+            {/* Badge */}
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>3</Text>
+            </View>
+          </View>
           <View style={{ marginLeft: 12, flex: 1 }}>
             <Text style={styles.ticketTitle}>Your Active Tickets</Text>
             <Text style={styles.ticketSubtitle}>See your current journeys</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#fff" />
         </TouchableOpacity>
+
 
         {/* Quick Actions */}
         <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -111,7 +100,7 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0E1A12', padding: 20 },
-  
+
   // Header
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   greeting: { color: '#aaa', fontSize: 16 },
@@ -134,25 +123,11 @@ const styles = StyleSheet.create({
     color: '#000',
   },
 
-  // History Cards
-  historyCard: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    marginRight: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
-  },
   historyCardText: { marginLeft: 8, color: '#333', fontSize: 14 },
 
   // Balance Card
   balanceCard: {
+    marginTop: 20,
     backgroundColor: '#FDF7E3',
     borderRadius: 20,
     padding: 20,
@@ -207,4 +182,56 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   actionLabel: { color: '#ccc', fontSize: 12, textAlign: 'center' },
+  // History Cards
+  historyCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    marginRight: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: 180,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  historyIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#0E1A12',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  historyTitle: {
+    color: '#000',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  historySubtitle: {
+    color: '#666',
+    fontSize: 12,
+    marginTop: 2,
+  },
+
+  badge: {
+  position: 'absolute',
+  top: -20,
+  right: 10,
+  backgroundColor: '#FF3B30',
+  borderRadius: 12,
+  minWidth: 20,
+  height: 20,
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 5,
+},
+badgeText: {
+  color: '#fff',
+  fontSize: 12,
+  fontWeight: '700',
+},
+
 });
