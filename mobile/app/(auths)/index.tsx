@@ -1,12 +1,44 @@
-import React, { useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useRef, useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import Swiper from "react-native-swiper";
 import { useRouter } from "expo-router";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Onboarding() {
   const router = useRouter();
   const swiperRef = useRef<Swiper>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user has seen onboarding
+    AsyncStorage.getItem("hasSeenOnboarding").then((value) => {
+      if (value === "true") {
+        // AsyncStorage.setItem("hasSeenOnboarding", "false");
+        router.replace("/(auths)/login");
+      } else {
+        setLoading(false);
+      }
+    });
+  }, []);
+
+  const markOnboardingSeen = async () => {
+    await AsyncStorage.setItem("hasSeenOnboarding", "true");
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.slide}>
+        <ActivityIndicator size="large" color="#FF6B00" />
+      </View>
+    );
+  }
 
   const slides = [
     {
@@ -25,17 +57,19 @@ export default function Onboarding() {
       id: 3,
       icon: "map-marked-alt",
       title: "Track Your Ride",
-      subtitle: "Real-time tracking helps you know when your bus arrives 📍",
+      subtitle: "Real-time tracking helps you know exactly when your bus arrives 📍",
       last: true,
     },
   ];
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Skip button */}
       <TouchableOpacity
         style={styles.skipBtn}
-        onPress={() => router.push("/(auths)/login")}
+        onPress={async () => {
+          await markOnboardingSeen();
+          router.replace("/(auths)/login");
+        }}
       >
         <Text style={styles.skipText}>Skip</Text>
       </TouchableOpacity>
@@ -47,24 +81,29 @@ export default function Onboarding() {
         activeDotColor="#FF6B00"
         dotColor="#666"
       >
-        {slides.map((slide, index) => (
+        {slides.map((slide) => (
           <View key={slide.id} style={styles.slide}>
             <FontAwesome5 name={slide.icon} size={120} color="#FF6B00" />
             <Text style={styles.title}>{slide.title}</Text>
             <Text style={styles.subtitle}>{slide.subtitle}</Text>
 
-            {/* Last slide → show CTA buttons */}
             {slide.last ? (
               <View style={styles.buttonContainer}>
                 <TouchableOpacity
                   style={[styles.button, styles.primaryButton]}
-                  onPress={() => router.push("/(auths)/signup")}
+                  onPress={async () => {
+                    await markOnboardingSeen();
+                    router.replace("/(auths)/signup");
+                  }}
                 >
                   <Text style={styles.primaryButtonText}>Get Started</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.button, styles.secondaryButton]}
-                  onPress={() => router.push("/(auths)/login")}
+                  onPress={async () => {
+                    await markOnboardingSeen();
+                    router.replace("/(auths)/login");
+                  }}
                 >
                   <Text style={styles.secondaryButtonText}>
                     I already have an account
@@ -72,7 +111,6 @@ export default function Onboarding() {
                 </TouchableOpacity>
               </View>
             ) : (
-              // Show next button on other slides
               <TouchableOpacity
                 style={styles.nextBtn}
                 onPress={() => swiperRef.current?.scrollBy(1)}
