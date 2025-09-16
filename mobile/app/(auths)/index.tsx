@@ -9,9 +9,9 @@ import {
 } from "react-native";
 import Swiper from "react-native-swiper";
 import { useRouter } from "expo-router";
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
+import LottieView from "lottie-react-native";
 
 const { width } = Dimensions.get("window");
 
@@ -21,12 +21,12 @@ export default function Onboarding() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if the user has already seen the onboarding
     AsyncStorage.getItem("hasSeenOnboarding").then((value) => {
       if (value === "true") {
-        // For Testting Purpose
         AsyncStorage.setItem("hasSeenOnboarding", "false");
-        setLoading(false);
         // router.replace("/(auths)/login");
+        setLoading(false);
       } else {
         setLoading(false);
       }
@@ -48,19 +48,19 @@ export default function Onboarding() {
   const slides = [
     {
       id: 1,
-      icon: "bus-alt",
+      animation: require("../../assets/animations/bus.json"), 
       title: "Welcome to MoBus",
       subtitle: "Your smart public bus booking service 🚍",
     },
     {
       id: 2,
-      icon: "ticket-alt",
+      animation: require("../../assets/animations/tickets.json"), // Replace with your Lottie JSON file
       title: "Easy Booking",
       subtitle: "Reserve your bus seat anytime, anywhere 🎟️",
     },
     {
       id: 3,
-      icon: "map-marked-alt",
+      animation: require("../../assets/animations/maps.json"), // Replace with your Lottie JSON file
       title: "Track Your Ride",
       subtitle:
         "Real-time tracking helps you know exactly when your bus arrives 📍",
@@ -95,11 +95,11 @@ export default function Onboarding() {
             style={styles.slide}
           >
             <View style={styles.iconContainer}>
-              <FontAwesome5
-                name={slide.icon}
-                size={120}
-                color="#FF6B00"
-                style={styles.icon}
+              <LottieView
+                source={slide.animation}
+                autoPlay
+                loop
+                style={styles.lottieIcon}
               />
             </View>
 
@@ -152,17 +152,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 30,
   },
-   iconContainer: {
+  iconContainer: {
     marginBottom: 30,
     shadowColor: "#FF6B00",
-    shadowOpacity: 0.3, // reduced from 0.6 → softer
-    shadowRadius: 10,   // reduced from 20 → less blur
-    shadowOffset: { width: 0, height: 6 }, // smaller offset
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
-  icon: {
-    textShadowColor: "#FF6B00",
-    textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 6, // reduced from 15
+  lottieIcon: {
+    width: 250,
+    height: 250,
   },
   title: {
     fontSize: 28,
