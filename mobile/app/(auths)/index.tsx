@@ -56,7 +56,7 @@ export default function Onboarding() {
       id: 2,
       animation: require("../../assets/animations/tickets.json"), // Replace with your Lottie JSON file
       title: "Easy Booking",
-      subtitle: "Reserve your bus seat anytime, anywhere 🎟️",
+      subtitle: "Book your ticket anytime, anywhere 🎟️",
     },
     {
       id: 3,
