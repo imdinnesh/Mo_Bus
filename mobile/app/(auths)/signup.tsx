@@ -1,8 +1,30 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { SignupFormData, signupSchema } from "@/schemas/auth.schema";
 
 export default function Signup() {
   const router = useRouter();
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = async (data: SignupFormData) => {
+    console.log("Form submitted:", data);
+    // call signup API here
+    router.push("/(auths)/login");
+  };
 
   return (
     <View style={styles.container}>
@@ -14,25 +36,43 @@ export default function Signup() {
       {/* Name */}
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Name</Text>
-        <TextInput
-          placeholder="John Doe"
-          placeholderTextColor="#aaa"
-          style={styles.input}
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder="John Doe"
+              placeholderTextColor="#aaa"
+              style={styles.input}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
         />
-        <Text style={styles.errorText}>{/* name error */}</Text>
+        {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
       </View>
 
       {/* Email */}
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Email</Text>
-        <TextInput
-          placeholder="johndoe@example.com"
-          placeholderTextColor="#aaa"
-          style={styles.input}
-          keyboardType="email-address"
-          autoCapitalize="none"
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder="johndoe@example.com"
+              placeholderTextColor="#aaa"
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
         />
-        <Text style={styles.errorText}>{/* email error */}</Text>
+        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
       </View>
 
       {/* Password */}
@@ -40,18 +80,33 @@ export default function Signup() {
         <View style={styles.labelRow}>
           <Text style={styles.label}>Password</Text>
         </View>
-        <TextInput
-          placeholder="••••••••"
-          placeholderTextColor="#aaa"
-          style={styles.input}
-          secureTextEntry
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder="••••••••"
+              placeholderTextColor="#aaa"
+              style={styles.input}
+              secureTextEntry
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
         />
-        <Text style={styles.errorText}>{/* password error */}</Text>
+        {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
       </View>
 
       {/* Signup button */}
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Signup</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSubmit(onSubmit)}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.buttonText}>
+          {isSubmitting ? "Signing up..." : "Signup"}
+        </Text>
       </TouchableOpacity>
 
       {/* Google signup */}
@@ -64,10 +119,7 @@ export default function Signup() {
       {/* Login link */}
       <Text style={styles.loginText}>
         Already have an account?{" "}
-        <Text
-          style={styles.link}
-          onPress={() => router.push("/(auths)/login")}
-        >
+        <Text style={styles.link} onPress={() => router.push("/(auths)/login")}>
           Sign in
         </Text>
       </Text>
@@ -80,7 +132,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     justifyContent: "center",
-    backgroundColor: "#0E1A12", // dark background
+    backgroundColor: "#0E1A12",
   },
   title: {
     fontSize: 24,
@@ -124,7 +176,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   button: {
-    backgroundColor: "#FF6A3D", // orange
+    backgroundColor: "#FF6A3D",
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
