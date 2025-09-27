@@ -7,7 +7,6 @@ import 'react-native-reanimated';
 import { Toaster } from 'sonner-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Text } from 'react-native';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

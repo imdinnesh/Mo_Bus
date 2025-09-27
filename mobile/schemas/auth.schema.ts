@@ -7,3 +7,13 @@ export const signupSchema = z.object({
 });
 
 export type SignupFormData = z.infer<typeof signupSchema>;
+
+export const otpSchema = z.object({
+  otp: z
+    .string()
+    .min(6, "OTP must be 6 digits")
+    .max(6, "OTP must be 6 digits")
+    .regex(/^\d+$/, "OTP must only contain numbers"),
+});
+
+export type OtpFormData = z.infer<typeof otpSchema>;

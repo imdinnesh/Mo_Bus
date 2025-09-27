@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, signupSchema } from "@/schemas/auth.schema";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from 'sonner-native';
+import { resendOtpService } from "@/api/auth.service";
 
 export default function Signup() {
   const router = useRouter();
@@ -27,6 +28,8 @@ export default function Signup() {
     signup(data);
     if (error) {
       toast.error(error);
+      await resendOtpService(data.email);
+      router.replace("/(auths)/verify")
     }
   };
 

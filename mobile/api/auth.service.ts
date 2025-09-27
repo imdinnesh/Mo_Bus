@@ -1,5 +1,6 @@
 import { axiosClient } from "@/config/axios";
-import { SignupFormData } from "@/schemas/auth.schema";
+import { OtpFormData, SignupFormData } from "@/schemas/auth.schema";
+import { email } from "zod";
 
 export const signupService = async (
     payload: SignupFormData
@@ -27,3 +28,24 @@ export const signupService = async (
         };
     }
 };
+
+export const resendOtpService = async (email: string) =>{
+    try{
+        const response=await axiosClient.post("/user/resend-otp",{
+            email
+        })
+
+        return {
+            success: true,
+            data:response.data
+        }
+    }
+    catch(error:any){
+        return {
+            success: false,
+            data: undefined,
+            message: error?.response.data.error || "Resend OTP failed",
+            error: error?.response.data.error || "Unknown error",
+        }
+    }
+}
