@@ -1,16 +1,18 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, signupSchema } from "@/schemas/auth.schema";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function Signup() {
   const router = useRouter();
+  const { signup, loading, error} = useAuthStore();
 
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -21,9 +23,7 @@ export default function Signup() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    console.log("Form submitted:", data);
-    // call signup API here
-    router.push("/(auths)/login");
+    signup(data);
   };
 
   return (
@@ -100,13 +100,15 @@ export default function Signup() {
 
       {/* Signup button */}
       <TouchableOpacity
-        style={styles.button}
+        style={[styles.button, loading && { opacity: 0.7 }]}
         onPress={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
+        disabled={loading}
       >
-        <Text style={styles.buttonText}>
-          {isSubmitting ? "Signing up..." : "Signup"}
-        </Text>
+        {loading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Signup</Text>
+        )}
       </TouchableOpacity>
 
       {/* Google signup */}
@@ -173,6 +175,11 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12,
     color: "red",
+    marginTop: 4,
+  },
+  successText: {
+    fontSize: 12,
+    color: "lightgreen",
     marginTop: 4,
   },
   button: {
