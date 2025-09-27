@@ -4,6 +4,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, signupSchema } from "@/schemas/auth.schema";
 import { useAuthStore } from "@/store/auth.store";
+import { toast } from 'sonner-native';
 
 export default function Signup() {
   const router = useRouter();
@@ -24,6 +25,9 @@ export default function Signup() {
 
   const onSubmit = async (data: SignupFormData) => {
     signup(data);
+    if (error) {
+      toast.error(error);
+    }
   };
 
   return (
