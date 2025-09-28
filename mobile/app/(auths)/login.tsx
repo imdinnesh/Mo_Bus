@@ -1,8 +1,42 @@
 import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LoginFormData, loginSchema } from "@/schemas/auth.schema";
+import { useAuthStore } from "@/store/auth.store";
+import { toast } from "sonner-native";
+
 
 export default function Login() {
   const router = useRouter();
+  const {login,loading}=useAuthStore();
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  // on submit
+  const onSubmit =async (data: LoginFormData) => {
+    await login(data,{
+      onSuccess:(msg:string)=>{
+        toast.success(msg);
+        router.replace("/(tabs)/home");
+      },
+
+      onError(err) {
+        toast.error(err.statusDesc);
+      }
+    })
+  };
 
   return (
     <View style={styles.container}>
@@ -14,14 +48,23 @@ export default function Login() {
       {/* Email */}
       <View style={styles.inputGroup}>
         <Text style={styles.label}>Email</Text>
-        <TextInput
-          placeholder="johndoe@example.com"
-          placeholderTextColor="#aaa"
-          style={styles.input}
-          keyboardType="email-address"
-          autoCapitalize="none"
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder="johndoe@example.com"
+              placeholderTextColor="#aaa"
+              style={styles.input}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+            />
+          )}
         />
-        <Text style={styles.errorText}>{/* email error */}</Text>
+        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
       </View>
 
       {/* Password */}
@@ -32,18 +75,35 @@ export default function Login() {
             <Text style={styles.link}>Forgot your password?</Text>
           </TouchableOpacity>
         </View>
-        <TextInput
-          placeholder="••••••••"
-          placeholderTextColor="#aaa"
-          style={styles.input}
-          secureTextEntry
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder="••••••••"
+              placeholderTextColor="#aaa"
+              style={styles.input}
+              secureTextEntry
+              value={value}
+              onBlur={onBlur}
+              onChangeText={onChange}
+            />
+          )}
         />
-        <Text style={styles.errorText}>{/* password error */}</Text>
+        {errors.password && (
+          <Text style={styles.errorText}>{errors.password.message}</Text>
+        )}
       </View>
 
       {/* Login button */}
-      <TouchableOpacity style={styles.button}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSubmit(onSubmit)}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.buttonText}>
+          {isSubmitting ? "Logging in..." : "Login"}
+        </Text>
       </TouchableOpacity>
 
       {/* Google login */}

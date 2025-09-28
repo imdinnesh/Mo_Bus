@@ -1,6 +1,5 @@
 import { axiosClient } from "@/config/axios";
-import { SignupFormData } from "@/schemas/auth.schema";
-
+import { LoginFormData, SignupFormData } from "@/schemas/auth.schema";
 export interface ApiError {
     message: string; // Orchestration message
     status?: number; // HTTP status code
@@ -81,4 +80,24 @@ export const verifyOtpService = async (email: string, otp: string): Promise<ApiR
     }
 }
 
+export const loginService=async(payload:LoginFormData):Promise<ApiResponse<any>>=>{
+    try{
+        const response=await axiosClient.post("/user/signin",{
+            email:payload.email,
+            password:payload.password
+        })
 
+        return {
+            success:true,
+            data:response.data,
+            message:response.data.message || "Login successful"
+        }
+    }
+    catch(error:any){
+        throw {
+            message: error?.response?.data?.error || "Login failed",
+            status: error?.response?.status,
+            statusDesc: error?.response?.data?.error
+        } as ApiError;
+    }
+}

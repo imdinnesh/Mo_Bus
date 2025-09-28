@@ -22,7 +22,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <SafeAreaProvider>
-          <Stack>
+          <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(auths)" options={{ headerShown: false }} />
             {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
             <Stack.Screen name="+not-found" />

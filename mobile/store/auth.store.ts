@@ -1,12 +1,13 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { SignupFormData } from "@/schemas/auth.schema";
+import { LoginFormData, SignupFormData } from "@/schemas/auth.schema";
 import {
     signupService,
     sendOtpService,
     verifyOtpService,
     ApiError,
+    loginService,
 } from "@/api/auth.service";
 
 interface AuthState {
@@ -37,6 +38,14 @@ interface AuthState {
         opts?: {
             onSuccess?: (msg: string) => void;
             onError?: (err: ApiError) => void;
+        }
+    ) => Promise<void>;
+
+    login:(
+        payload:LoginFormData,
+        opts?:{
+            onSuccess?:(msg:string)=>void;
+            onError?:(err:ApiError)=>void;
         }
     ) => Promise<void>;
 }
@@ -110,6 +119,19 @@ export const useAuthStore = create<AuthState>()(
                 } catch (err: any) {
                     const error: ApiError = err;
                     set({ loading: false, error: error.message });
+                    opts?.onError?.(error);
+                }
+            },
+
+            login:async(payload,opts)=>{
+                set({ loading: true, error: null, email: payload.email });
+                try{
+                    const result=await loginService(payload);
+                    set({loading:false});
+                    opts?.onSuccess?.(result.message);
+                }catch(err:any){
+                    const error:ApiError=err;
+                    set({loading:false,error:error.message});
                     opts?.onError?.(error);
                 }
             },

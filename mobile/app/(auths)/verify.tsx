@@ -68,7 +68,7 @@ export default function OtpVerify() {
     await verifyOtp(data.otp,email,{
       onSuccess(msg) {
         toast.success(msg);
-        router.replace("/(tabs)")
+        router.replace("/(auths)/login")
       },
       onError(err) {
         toast.error(err.statusDesc)
