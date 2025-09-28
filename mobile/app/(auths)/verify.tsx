@@ -10,7 +10,7 @@ import { OtpFormData, otpSchema } from "@/schemas/auth.schema";
 
 export default function OtpVerify() {
   const router = useRouter();
-  const { loading, error } = useAuthStore();
+  const { loading, error,resendOtp,email,verifyOtp } = useAuthStore();
 
   const {
     control,
@@ -61,7 +61,36 @@ export default function OtpVerify() {
   // On submit
   const onSubmit = async (data: OtpFormData) => {
     // Simulate API call
+    if(!email){
+      toast.error("Email is missing. Cannot verify OTP.");
+      return;
+    }
+    await verifyOtp(data.otp,email,{
+      onSuccess(msg) {
+        toast.success(msg);
+        router.replace("/(tabs)")
+      },
+      onError(err) {
+        toast.error(err.statusDesc)
+      }
+    })
   };
+
+  // Resend OTP
+  const handleResend = async () => {
+    if (email) {
+      await resendOtp(email,{
+        onSuccess(msg) {
+          toast.success(msg);
+        },
+        onError(err) {
+          toast.error(err.statusDesc)
+        }
+      });
+    } else {
+      toast.error("Email is missing. Cannot resend OTP.");
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -114,7 +143,7 @@ export default function OtpVerify() {
       {/* Resend OTP */}
       <TouchableOpacity
         style={[styles.button, styles.resendButton]}
-        onPress={() => toast.success("OTP resent successfully")}
+        onPress={handleResend}
       >
         <Text style={[styles.buttonText, { color: "#000" }]}>
           Resend OTP

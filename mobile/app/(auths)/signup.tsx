@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, signupSchema } from "@/schemas/auth.schema";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from 'sonner-native';
-import { resendOtpService } from "@/api/auth.service";
 
 export default function Signup() {
   const router = useRouter();
@@ -25,12 +24,21 @@ export default function Signup() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    signup(data);
-    if (error) {
-      toast.error(error);
-      await resendOtpService(data.email);
-      router.replace("/(auths)/verify")
-    }
+    await signup(data,{
+      onSuccess:(msg:string)=>{
+        toast.success(msg);
+        router.push("/(auths)/verify");
+      },
+
+      onOtpSent(msg) {
+        toast.success(msg);
+        router.push("/(auths)/verify")
+      },
+
+      onError(err) {
+        toast.error(err.statusDesc);
+      },
+    })
   };
 
   return (
