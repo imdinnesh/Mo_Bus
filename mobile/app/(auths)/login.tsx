@@ -1,16 +1,23 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginFormData, loginSchema } from "@/schemas/auth.schema";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from "sonner-native";
 
-
 export default function Login() {
   const router = useRouter();
-  const {login,loading}=useAuthStore();
+  const { login, loading } = useAuthStore();
 
   const {
     control,
@@ -24,115 +31,122 @@ export default function Login() {
     },
   });
 
-  // on submit
-  const onSubmit =async (data: LoginFormData) => {
-    await login(data,{
-      onSuccess:(msg:string)=>{
+  const onSubmit = async (data: LoginFormData) => {
+    await login(data, {
+      onSuccess: (msg: string) => {
         toast.success(msg);
         router.replace("/(tabs)/home");
       },
-
       onError(err) {
         toast.error(err.statusDesc);
-      }
-    })
+      },
+    });
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login to your account</Text>
-      <Text style={styles.description}>
-        Enter your email below to login to your account
-      </Text>
-
-      {/* Email */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email</Text>
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="johndoe@example.com"
-              placeholderTextColor="#aaa"
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={value}
-              onBlur={onBlur}
-              onChangeText={onChange}
-            />
-          )}
-        />
-        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
-      </View>
-
-      {/* Password */}
-      <View style={styles.inputGroup}>
-        <View style={styles.labelRow}>
-          <Text style={styles.label}>Password</Text>
-          <TouchableOpacity>
-            <Text style={styles.link}>Forgot your password?</Text>
-          </TouchableOpacity>
-        </View>
-        <Controller
-          control={control}
-          name="password"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="••••••••"
-              placeholderTextColor="#aaa"
-              style={styles.input}
-              secureTextEntry
-              value={value}
-              onBlur={onBlur}
-              onChangeText={onChange}
-            />
-          )}
-        />
-        {errors.password && (
-          <Text style={styles.errorText}>{errors.password.message}</Text>
-        )}
-      </View>
-
-      {/* Login button */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#0E1A12" }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.buttonText}>
-          {isSubmitting ? "Logging in..." : "Login"}
+        <Text style={styles.title}>Login to your account</Text>
+        <Text style={styles.description}>
+          Enter your email below to login to your account
         </Text>
-      </TouchableOpacity>
 
-      {/* Google login */}
-      <TouchableOpacity style={[styles.button, styles.googleButton]}>
-        <Text style={[styles.buttonText, { color: "#000" }]}>
-          Login with Google
-        </Text>
-      </TouchableOpacity>
+        {/* Email */}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Email</Text>
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                placeholder="johndoe@example.com"
+                placeholderTextColor="#aaa"
+                style={styles.input}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={value}
+                onBlur={onBlur}
+                onChangeText={onChange}
+              />
+            )}
+          />
+          {errors.email && (
+            <Text style={styles.errorText}>{errors.email.message}</Text>
+          )}
+        </View>
 
-      {/* Signup link */}
-      <Text style={styles.signupText}>
-        Don’t have an account?{" "}
-        <Text
-          style={styles.link}
-          onPress={() => router.push("/(auths)/signup")}
+        {/* Password */}
+        <View style={styles.inputGroup}>
+          <View style={styles.labelRow}>
+            <Text style={styles.label}>Password</Text>
+            <TouchableOpacity>
+              <Text style={styles.link}>Forgot your password?</Text>
+            </TouchableOpacity>
+          </View>
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, onBlur, value } }) => (
+              <TextInput
+                placeholder="••••••••"
+                placeholderTextColor="#aaa"
+                style={styles.input}
+                secureTextEntry
+                value={value}
+                onBlur={onBlur}
+                onChangeText={onChange}
+              />
+            )}
+          />
+          {errors.password && (
+            <Text style={styles.errorText}>{errors.password.message}</Text>
+          )}
+        </View>
+
+        {/* Login button */}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleSubmit(onSubmit)}
+          disabled={isSubmitting}
         >
-          Sign up
+          <Text style={styles.buttonText}>
+            {isSubmitting ? "Logging in..." : "Login"}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Google login */}
+        <TouchableOpacity style={[styles.button, styles.googleButton]}>
+          <Text style={[styles.buttonText, { color: "#000" }]}>
+            Login with Google
+          </Text>
+        </TouchableOpacity>
+
+        {/* Signup link */}
+        <Text style={styles.signupText}>
+          Don’t have an account?{" "}
+          <Text
+            style={styles.link}
+            onPress={() => router.push("/(auths)/signup")}
+          >
+            Sign up
+          </Text>
         </Text>
-      </Text>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 24,
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: "center",
-    backgroundColor: "#0E1A12", // dark background
+    padding: 24,
   },
   title: {
     fontSize: 24,
@@ -176,7 +190,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   button: {
-    backgroundColor: "#FF6A3D", // orange
+    backgroundColor: "#FF6A3D",
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
