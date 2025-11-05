@@ -7,6 +7,9 @@ import 'react-native-reanimated';
 import { Toaster } from 'sonner-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -20,6 +23,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <SafeAreaProvider>
           <Stack screenOptions={{ headerShown: false }}>
@@ -47,6 +51,7 @@ export default function RootLayout() {
           />
         </SafeAreaProvider>
       </ThemeProvider>
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
 }

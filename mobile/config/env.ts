@@ -1,0 +1,1 @@
+export const API_BASE = process.env.EXPO_PUBLIC_API_BASE || 'http://192.168.29.82:8080/api/v1';

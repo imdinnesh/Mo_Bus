@@ -12,12 +12,13 @@ import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginFormData, loginSchema } from "@/schemas/auth.schema";
-import { useAuthStore } from "@/store/auth.store";
 import { toast } from "sonner-native";
+import { useLogin } from "@/hooks/auth.hooks";
 
 export default function Login() {
   const router = useRouter();
-  const { login, loading } = useAuthStore();
+
+  const { mutate, isPending, isError, error } = useLogin();
 
   const {
     control,
@@ -32,15 +33,16 @@ export default function Login() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    await login(data, {
-      onSuccess: (msg: string) => {
-        toast.success(msg);
-        router.replace("/(tabs)/home");
+    mutate(data,{
+      onSuccess: (data) => {
+        toast.success(data.message || "Logged in successfully!");
+
       },
-      onError(err) {
-        toast.error(err.statusDesc);
-      },
-    });
+      onError: (error) => {
+        toast.error(error.response.data.error || "Login failed. Please try again.");
+      }
+    })
+    
   };
 
   return (
