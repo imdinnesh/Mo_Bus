@@ -35,10 +35,13 @@ export default function Login() {
   const onSubmit = async (data: LoginFormData) => {
     mutate(data,{
       onSuccess: (data) => {
+        // Only UI related feedback here
         toast.success(data.message || "Logged in successfully!");
-
+        router.push("/(tabs)/home");
       },
+
       onError: (error) => {
+        // Only UI related feedback here
         toast.error(error.response.data.error || "Login failed. Please try again.");
       }
     })

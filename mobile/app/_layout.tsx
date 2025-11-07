@@ -27,8 +27,9 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <SafeAreaProvider>
           <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="splash" />
             <Stack.Screen name="(auths)" options={{ headerShown: false }} />
-            {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="light" />
