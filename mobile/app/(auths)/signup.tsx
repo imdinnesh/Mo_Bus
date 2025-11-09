@@ -3,12 +3,12 @@ import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, signupSchema } from "@/schemas/auth.schema";
-import { useAuthStore } from "@/store/auth.store";
 import { toast } from 'sonner-native';
+import { useSignup } from "@/hooks/auth.hooks";
 
 export default function Signup() {
   const router = useRouter();
-  const { signup, loading, error} = useAuthStore();
+  const { mutate, isPending, isError, error } = useSignup();
 
   const {
     control,
@@ -24,21 +24,18 @@ export default function Signup() {
   });
 
   const onSubmit = async (data: SignupFormData) => {
-    await signup(data,{
-      onSuccess:(msg:string)=>{
-        toast.success(msg);
-        router.push("/(auths)/verify");
+    mutate(data, {
+      onSuccess: (data) => {
+        // Only UI related feedback here
+        toast.success(data.message || "Account created successfully!");
+        router.push("/(tabs)/home");
       },
-
-      onOtpSent(msg) {
-        toast.success(msg);
-        router.push("/(auths)/verify")
-      },
-
-      onError(err) {
-        toast.error(err.statusDesc);
-      },
+      onError: (error) => {
+        // Only UI related feedback here
+        toast.error(error.response.data.error || "Signup failed. Please try again.");
+      }
     })
+    
   };
 
   return (
@@ -115,11 +112,11 @@ export default function Signup() {
 
       {/* Signup button */}
       <TouchableOpacity
-        style={[styles.button, loading && { opacity: 0.7 }]}
+        style={[styles.button, isPending && { opacity: 0.7 }]}
         onPress={handleSubmit(onSubmit)}
-        disabled={loading}
+        disabled={isPending}
       >
-        {loading ? (
+        {isPending ? (
           <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.buttonText}>Signup</Text>

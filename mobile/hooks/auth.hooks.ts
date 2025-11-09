@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { LoginService } from "@/services/auth.service";
+import { LoginService, SignupService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth.store";
 
 export const useLogin = () => {
@@ -23,3 +23,20 @@ export const useLogin = () => {
         },
     });
 };
+
+export const useSignup=()=>{
+    const setEmail = useAuthStore((state) => state.setEmail);
+
+    return useMutation({
+        mutationKey: ["signup"],
+        mutationFn:SignupService,
+        
+        onSuccess: (data, variables) => {
+            // variables = payload sent to SignupService
+            if (variables?.email) setEmail(variables.email);
+        },
+        onError: (error: any) => {
+            console.error("Signup failed:", error);
+        }
+    })
+}

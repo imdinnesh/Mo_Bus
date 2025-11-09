@@ -24,34 +24,37 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <SafeAreaProvider>
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="splash" />
-            <Stack.Screen name="(auths)" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="light" />
-          <Toaster
-            position="top-center"
-            // offset={100}
-            duration={3000}
-            swipeToDismissDirection="up"
-            visibleToasts={4}
-            closeButton
-            autoWiggleOnUpdate="toast-change"
-            theme="system"
-            toastOptions={{
-              actionButtonStyle: {
-                paddingHorizontal: 20,
-              },
-            }}
-            // ToastWrapper={ToastWrapper}
-            pauseWhenPageIsHidden
-          />
-        </SafeAreaProvider>
-      </ThemeProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <SafeAreaProvider>
+            <Stack
+              initialRouteName="splash"
+              screenOptions={{ headerShown: false }}
+            >
+              <Stack.Screen name="splash" options={{ headerShown: false }} />
+              <Stack.Screen name="(auths)" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="light" />
+            <Toaster
+              position="top-center"
+              // offset={100}
+              duration={3000}
+              swipeToDismissDirection="up"
+              visibleToasts={4}
+              closeButton
+              autoWiggleOnUpdate="toast-change"
+              theme="system"
+              toastOptions={{
+                actionButtonStyle: {
+                  paddingHorizontal: 20,
+                },
+              }}
+              // ToastWrapper={ToastWrapper}
+              pauseWhenPageIsHidden
+            />
+          </SafeAreaProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );

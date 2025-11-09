@@ -1,56 +1,34 @@
-import { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { useEffect } from "react";
+import { View, Text, Image, ActivityIndicator, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
 import { useAuthStore } from "@/store/auth.store";
-import { isTokenValid } from "@/utils/token";
 
-// Prevent the splash screen from auto-hiding before we finish checks
-SplashScreen.preventAutoHideAsync();
 
-export default function Splash() {
+
+export default function SplashPage() {
   const router = useRouter();
   const { accessToken } = useAuthStore();
-  const [message, setMessage] = useState("Initializing...");
 
   useEffect(() => {
-    const run = async () => {
-      try {
-        // 1️⃣ Allow Zustand to rehydrate persisted store
-        await new Promise((resolve) => setTimeout(resolve, 300));
+    const init = async () => {
+      // Simulate some loading delay (like checking tokens)
+      await new Promise((res) => setTimeout(res, 20000));
 
-        setMessage("Checking authentication...");
-
-        // 2️⃣ Check if token exists and is valid
-        const valid = isTokenValid(accessToken);
-        if (!valid) {
-          setMessage("Redirecting to login...");
-          await SplashScreen.hideAsync();
-          router.replace("/login");
-          return;
-        }
-
-        // 3️⃣ Optional: Biometric check
-        setMessage("Verifying biometrics...");
-        
-        // 4️⃣ Everything OK — go to home
-        setMessage("Welcome back!");
-        await SplashScreen.hideAsync();
+      // Navigate based on token
+      if (accessToken) {
+        router.replace("/(tabs)/home");
+      } else {
         router.replace("/(auths)/login");
-      } catch (error) {
-        console.error("Error during splash checks:", error);
-        await SplashScreen.hideAsync();
-        router.replace("/home");
       }
     };
-    run();
-  }, [accessToken]);
+
+    init();
+  }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>MyApp</Text>
-      <ActivityIndicator size="large" color="#fff" />
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.title}>My Awesome App</Text>
+      <ActivityIndicator size="large" color="#333" style={{ marginTop: 20 }} />
     </View>
   );
 }
@@ -58,18 +36,18 @@ export default function Splash() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: "#ffffff",
     alignItems: "center",
-    backgroundColor: "#000", // change to your brand color
+    justifyContent: "center",
   },
   logo: {
-    color: "#fff",
-    fontSize: 32,
-    fontWeight: "bold",
-    marginBottom: 24,
+    width: 120,
+    height: 120,
+    marginBottom: 20,
   },
-  message: {
-    color: "#ccc",
-    marginTop: 12,
+  title: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#333",
   },
 });
