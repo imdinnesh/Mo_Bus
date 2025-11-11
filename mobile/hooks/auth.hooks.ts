@@ -19,24 +19,28 @@ export const useLogin = () => {
         },
 
         onError: (error: any) => {
-            console.error("Login failed:", error);
+            const status = error?.response?.status;
+            if(status===403){
+
+            }
         },
     });
 };
 
-export const useSignup=()=>{
+export const useSignup = () => {
     const setEmail = useAuthStore((state) => state.setEmail);
 
     return useMutation({
         mutationKey: ["signup"],
-        mutationFn:SignupService,
-        
+        mutationFn: SignupService,
+
         onSuccess: (data, variables) => {
             // variables = payload sent to SignupService
             if (variables?.email) setEmail(variables.email);
         },
         onError: (error: any) => {
-            console.error("Signup failed:", error);
+            const status = error?.response?.status;
+            console.log("HTTP Status:", status);
         }
     })
 }

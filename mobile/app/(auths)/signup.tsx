@@ -1,14 +1,26 @@
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SignupFormData, signupSchema } from "@/schemas/auth.schema";
-import { toast } from 'sonner-native';
+import { toast } from "sonner-native";
 import { useSignup } from "@/hooks/auth.hooks";
 
 export default function Signup() {
   const router = useRouter();
-  const { mutate, isPending, isError, error } = useSignup();
+  const { mutate, isPending } = useSignup();
 
   const {
     control,
@@ -23,125 +35,148 @@ export default function Signup() {
     },
   });
 
-  const onSubmit = async (data: SignupFormData) => {
+  const onSubmit = (data: SignupFormData) => {
     mutate(data, {
-      onSuccess: (data) => {
-        // Only UI related feedback here
-        toast.success(data.message || "Account created successfully!");
+      onSuccess: (res) => {
+        toast.success(res.message || "Account created successfully!");
         router.push("/(tabs)/home");
       },
       onError: (error) => {
-        // Only UI related feedback here
-        toast.error(error.response.data.error || "Signup failed. Please try again.");
-      }
-    })
-    
+        toast.error(
+          error.response?.data?.error || "Signup failed. Please try again."
+        );
+      },
+    });
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Create your account</Text>
-      <Text style={styles.description}>
-        Enter your details below to create your account
-      </Text>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: "#0E1A12" }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.container}>
+            <Text style={styles.title}>Create your account</Text>
+            <Text style={styles.description}>
+              Enter your details below to create your account
+            </Text>
 
-      {/* Name */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Name</Text>
-        <Controller
-          control={control}
-          name="name"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="John Doe"
-              placeholderTextColor="#aaa"
-              style={styles.input}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-            />
-          )}
-        />
-        {errors.name && <Text style={styles.errorText}>{errors.name.message}</Text>}
-      </View>
+            {/* Name */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Name</Text>
+              <Controller
+                control={control}
+                name="name"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    placeholder="John Doe"
+                    placeholderTextColor="#aaa"
+                    style={styles.input}
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                  />
+                )}
+              />
+              {errors.name && (
+                <Text style={styles.errorText}>{errors.name.message}</Text>
+              )}
+            </View>
 
-      {/* Email */}
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>Email</Text>
-        <Controller
-          control={control}
-          name="email"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="johndoe@example.com"
-              placeholderTextColor="#aaa"
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-            />
-          )}
-        />
-        {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
-      </View>
+            {/* Email */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Email</Text>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    placeholder="johndoe@example.com"
+                    placeholderTextColor="#aaa"
+                    style={styles.input}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                  />
+                )}
+              />
+              {errors.email && (
+                <Text style={styles.errorText}>{errors.email.message}</Text>
+              )}
+            </View>
 
-      {/* Password */}
-      <View style={styles.inputGroup}>
-        <View style={styles.labelRow}>
-          <Text style={styles.label}>Password</Text>
-        </View>
-        <Controller
-          control={control}
-          name="password"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="••••••••"
-              placeholderTextColor="#aaa"
-              style={styles.input}
-              secureTextEntry
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-            />
-          )}
-        />
-        {errors.password && <Text style={styles.errorText}>{errors.password.message}</Text>}
-      </View>
+            {/* Password */}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Password</Text>
+              <Controller
+                control={control}
+                name="password"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    placeholder="••••••••"
+                    placeholderTextColor="#aaa"
+                    style={styles.input}
+                    secureTextEntry
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                  />
+                )}
+              />
+              {errors.password && (
+                <Text style={styles.errorText}>{errors.password.message}</Text>
+              )}
+            </View>
 
-      {/* Signup button */}
-      <TouchableOpacity
-        style={[styles.button, isPending && { opacity: 0.7 }]}
-        onPress={handleSubmit(onSubmit)}
-        disabled={isPending}
-      >
-        {isPending ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Signup</Text>
-        )}
-      </TouchableOpacity>
+            {/* Signup button */}
+            <TouchableOpacity
+              style={[styles.button, isPending && { opacity: 0.7 }]}
+              onPress={handleSubmit(onSubmit)}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Signup</Text>
+              )}
+            </TouchableOpacity>
 
-      {/* Google signup */}
-      <TouchableOpacity style={[styles.button, styles.googleButton]}>
-        <Text style={[styles.buttonText, { color: "#000" }]}>
-          Signup with Google
-        </Text>
-      </TouchableOpacity>
+            {/* Google signup */}
+            <TouchableOpacity style={[styles.button, styles.googleButton]}>
+              <Text style={[styles.buttonText, { color: "#000" }]}>
+                Signup with Google
+              </Text>
+            </TouchableOpacity>
 
-      {/* Login link */}
-      <Text style={styles.loginText}>
-        Already have an account?{" "}
-        <Text style={styles.link} onPress={() => router.push("/(auths)/login")}>
-          Sign in
-        </Text>
-      </Text>
-    </View>
+            {/* Login link */}
+            <Text style={styles.loginText}>
+              Already have an account?{" "}
+              <Text
+                style={styles.link}
+                onPress={() => router.push("/(auths)/login")}
+              >
+                Sign in
+              </Text>
+            </Text>
+          </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
   container: {
     flex: 1,
     padding: 24,
@@ -169,11 +204,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     color: "#fff",
   },
-  labelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
   input: {
     borderWidth: 1,
     borderColor: "#333",
@@ -187,11 +217,6 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 12,
     color: "red",
-    marginTop: 4,
-  },
-  successText: {
-    fontSize: 12,
-    color: "lightgreen",
     marginTop: 4,
   },
   button: {

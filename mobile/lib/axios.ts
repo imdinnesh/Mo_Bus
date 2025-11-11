@@ -33,10 +33,6 @@ api.interceptors.response.use(
       toast.error("Server error — please try again later.");
     }
 
-    // 4️⃣ Optional: 4xx client-side or validation errors
-    else if (error.response?.data?.message) {
-      toast.error(error.response.data.message);
-    }
 
     return Promise.reject(error);
   }
